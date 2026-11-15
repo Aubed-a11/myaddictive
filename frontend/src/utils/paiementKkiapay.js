@@ -1,0 +1,83 @@
+import { ouvrirWidgetKkiapay } from './kkiapay';
+import client from '../api/client';
+
+// Cle PUBLIQUE KKiaPay (visible dans le widget par nature) : valeur de secours si la variable Vercel manque.
+const CLE_PUBLIQUE = import.meta.env.VITE_KKIAPAY_PUBLIC_KEY || '2768ba30b26211f1b65337f63117265d';
+const SANDBOX = import.meta.env.VITE_KKIAPAY_SANDBOX !== 'false';
+export { SANDBOX };
+
+/**
+ * Numero de telephone de test officiel KKiaPay (operateur MTN Benin,
+ * scenario "Successful" documente par KKiaPay), utilise comme valeur par
+ * defaut des champs telephone en mode sandbox : un vrai numero personnel
+ * est systematiquement rejete par l'environnement de test KKiaPay, seuls
+ * ces numeros dedies simulent un paiement reussi. Voir
+ * https://docs.kkiapay.me/v1/en-1.0.0/compte/kkiapay-sandbox-guide-de-test
+ */
+// Le prefixe pays (229, Benin) est necessaire : la documentation KKiaPay
+// illustre toujours ses numeros de test avec l'indicatif complet
+// (ex. "22997000000"), un numero sans indicatif etant rejete par le
+// bac a sable comme un numero invalide plutot que d'etre reconnu comme
+// test.
+export const TELEPHONE_TEST_SANDBOX = SANDBOX ? '61000000' : '';
+
+/**
+ * Enchaine tout le cycle KKiaPay pour une transaction deja creee
+ * (EN_ATTENTE) cote paiement-service : ouvre le widget, lie l'identifiant
+ * KKiaPay obtenu a notre transaction, puis interroge periodiquement le
+ * statut jusqu'a confirmation (webhook cote serveur) ou expiration.
+ *
+ * Ne fait JAMAIS confiance au seul retour du widget : c'est le webhook
+ * KKiaPay, traite cote serveur, qui fait foi (voir PaiementService.
+ * traiterWebhookKkiapay). Cette fonction se contente d'attendre ce
+ * resultat pour donner un retour a l'utilisateur.
+ */
+export function payerAvecKkiapay({ transactionId, montantFcfa, telephone, email, motif }) {
+  return new Promise((resolve, reject) => {
+    let echecTimer = null;
+    if (!CLE_PUBLIQUE) {
+      reject(new Error("KKiaPay n'est pas configure (cle publique manquante, voir mobile-app/.env)."));
+      return;
+    }
+
+    ouvrirWidgetKkiapay({
+      montantFcfa,
+      cleApiPublique: CLE_PUBLIQUE,
+      sandbox: SANDBOX,
+      // En sandbox, un vrai numero est toujours refuse : on pre-remplit le numero de test.
+      telephone: telephone || (SANDBOX ? TELEPHONE_TEST_SANDBOX : undefined),
+      email,
+      motif,
+      partnerId: transactionId,
+      onSucces: async (data) => {
+        if (echecTimer) { clearTimeout(echecTimer); echecTimer = null; }
+        try {
+          await client.post(`/api/paiement/transactions/${transactionId}/lier-externe`, {
+            idTransactionExterne: data.transactionId,
+          });
+          const transactionFinale = await attendreConfirmation(transactionId);
+          resolve(transactionFinale);
+        } catch (e) {
+          reject(e);
+        }
+      },
+      onEchec: () => {
+        // Le widget permet de reessayer apres un echec : on laisse 8 s avant de
+        // declarer l'echec a l'utilisateur. Un succes tardif reste pris en compte
+        // cote serveur (verification + webhook), meme si l'ecran a deja conclu.
+        if (echecTimer) return;
+        echecTimer = setTimeout(() => reject(new Error("Paiement KKiaPay annule ou echoue.")), 8000);
+      },
+    }).catch(reject);
+  });
+}
+
+/** Interroge le statut de la transaction toutes les 2 secondes, jusqu'a confirmation ou 90 secondes ecoulees (le webhook KKiaPay met generalement quelques secondes). */
+async function attendreConfirmation(transactionId, tentativesMax = 45) {
+  for (let i = 0; i < tentativesMax; i++) {
+    const { data } = await client.get(`/api/paiement/transactions/${transactionId}`);
+    if (data.statut !== 'EN_ATTENTE') return data;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error("Le paiement met plus de temps que prevu a se confirmer. Vous pouvez verifier son statut plus tard dans Mon compte > Transactions.");
+}

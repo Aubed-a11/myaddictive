@@ -1,0 +1,20 @@
+# Backend
+backend/target/
+backend/data/
+backend/uploads/
+backend/logs/
+*.log
+.env
+.env.*
+!.env.example
+
+# Front (React) et dashboard admin
+frontend/node_modules/
+frontend/dist/
+admin-dashboard/node_modules/
+admin-dashboard/dist/
+
+# Divers
+.DS_Store
+.idea/
+.vscode/
