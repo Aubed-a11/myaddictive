@@ -188,7 +188,9 @@ public class LiveService {
 
     // --- Reservation temporaire des places pendant le paiement (en memoire : au pire, un redemarrage
     // revient au comportement sans reservation, jamais a un refus a tort).
-    private static final long DUREE_RESERVATION_MS = 15 * 60_000L;
+    // Un paiement Mobile Money (FedaPay) peut etre valide jusqu'a 1 h apres : la place reste reservee
+    // 65 min (filet de securite), mais est liberee des l'echec/l'annulation du paiement.
+    private static final long DUREE_RESERVATION_MS = 65 * 60_000L;
     private record Reservation(Long evenementId, CategorieBillet categorie, long expiration) {}
     private final java.util.concurrent.ConcurrentHashMap<String, Reservation> reservations = new java.util.concurrent.ConcurrentHashMap<>();
 

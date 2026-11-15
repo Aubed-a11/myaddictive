@@ -71,4 +71,18 @@ public class InterneController {
         log.info("Billet emis pour l'evenement {} (utilisateur {}, transaction {}).", evenementId, utilisateurId, transactionId);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * Paiement echoue ou annule : la place reservee pour ce billet est liberee tout de suite
+     * (sans attendre l'expiration de la reservation).
+     */
+    @PostMapping("/paiement-echoue")
+    public ResponseEntity<Void> surPaiementEchoue(@RequestBody Map<String, Object> evenement) {
+        Object id = evenement.get("transactionId");
+        if (id != null) {
+            liveService.libererReservation(Long.valueOf(String.valueOf(id)));
+            log.info("Reservation liberee apres echec du paiement (transaction {}).", id);
+        }
+        return ResponseEntity.ok().build();
+    }
 }
