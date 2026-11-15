@@ -136,7 +136,9 @@ h1, h2, h3, p { margin: 0; }
 .carte-media .corps { padding: 14px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .carte-media h3 { font-size: 15px; font-weight: 700; line-height: 1.3; }
 .image-vide { display: grid; place-items: center; background: var(--carte-2); }
-.image-vide img { width: 38%; opacity: .5; }
+.image-vide img { opacity: 1; }
+.image-vide .logo-plein { width: 74%; max-height: 70%; object-fit: contain; }
+.image-vide .logo-icone { display: none; width: 64%; }
 
 .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(255, 204, 33, .14); color: var(--or); width: fit-content; }
 .badge.rouge { background: rgba(239, 68, 68, .15); color: #fca5a5; }
@@ -156,7 +158,8 @@ h1, h2, h3, p { margin: 0; }
 .ligne:last-child { border-bottom: 0; }
 .ligne .grow { flex: 1; min-width: 0; }
 .mini { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; background: var(--carte-2); flex-shrink: 0; }
-.mini.image-vide img { width: 60%; }
+.mini.image-vide .logo-plein { display: none; }
+.mini.image-vide .logo-icone { display: block; width: 64%; }
 a.ligne:hover, button.ligne:hover { background: rgba(255, 255, 255, .03); }
 
 /* ---------- Etats ---------- */

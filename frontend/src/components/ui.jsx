@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { urlImage } from '../api/client';
 import iconeMarque from '../assets/icone_myaddictive.png';
+import logoMarque from '../assets/logo_myaddictive.png';
 
 export function Chargement() {
   return <div className="chargeur" role="progressbar" aria-label="Chargement" />;
@@ -51,11 +52,14 @@ export function EntetePage({ titre, sousTitre, children }) {
   );
 }
 
-/** Image du backend, ou logo en filigrane quand il n'y en a pas. */
+/** Image du backend, ou logo My Addictive quand il n'y en a pas (logo complet, ou icône seule en petit format). */
 export function Image({ src, alt = '', className = '' }) {
   const url = urlImage(src);
   if (!url) {
-    return <div className={`${className} image-vide`} role="img" aria-label={alt}><img src={iconeMarque} alt="" /></div>;
+    return <div className={`${className} image-vide`} role="img" aria-label={alt}>
+        <img className="logo-plein" src={logoMarque} alt="" />
+        <img className="logo-icone" src={iconeMarque} alt="" />
+      </div>;
   }
   return <img className={className} src={url} alt={alt} loading="lazy" />;
 }

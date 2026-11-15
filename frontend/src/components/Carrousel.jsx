@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { urlImage } from '../api/client';
+import logoMarque from '../assets/logo_myaddictive.png';
 
 /** Piste horizontale a defilement tactile (une diapo ou une carte par element). */
 export default function Carrousel({ children }) {
@@ -11,7 +12,9 @@ export default function Carrousel({ children }) {
 export function Diapo({ vers, image, etiquette, titre, sousTitre }) {
   const url = urlImage(image);
   return (
-    <Link to={vers} className="diapo" style={url ? { backgroundImage: `url("${url}")` } : undefined}>
+    <Link to={vers} className="diapo" style={url
+      ? { backgroundImage: `url("${url}")` }
+      : { backgroundImage: `url("${logoMarque}")`, backgroundSize: '46%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center 38%' }}>
       {etiquette && <span className="badge">{etiquette}</span>}
       <div>
         <h3>{titre}</h3>
