@@ -95,9 +95,9 @@ mobile-money:
   moov:
     base-url: ${MOOV_MONEY_BASE_URL:}
     api-key: ${MOOV_MONEY_API_KEY:}
-  kkiapay:
-    secret-key: ${KKIAPAY_SECRET_KEY:}
-    webhook-secret: ${KKIAPAY_WEBHOOK_SECRET:}
-    public-key: ${KKIAPAY_PUBLIC_KEY:}
-    private-key: ${KKIAPAY_PRIVATE_KEY:}
-    sandbox: ${KKIAPAY_SANDBOX:true}
+  fedapay:
+    # Cle SECRETE FedaPay (sk_sandbox_... en test, sk_live_... en reel) : uniquement dans l'environnement du serveur.
+    secret-key: ${FEDAPAY_SECRET_KEY:}
+    sandbox: ${FEDAPAY_SANDBOX:true}
+    # Site du frontend : FedaPay y renvoie le client apres le paiement (/paiement/retour/{id}).
+    return-base-url: ${FEDAPAY_RETURN_BASE_URL:https://myaddictive.com}

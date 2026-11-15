@@ -5,14 +5,9 @@ import client from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import useCharger, { contenu } from '../utils/useCharger';
 import { formaterLibelle, dateCourte } from '../utils/libelles';
-import { payerAvecKkiapay, TELEPHONE_TEST_SANDBOX } from '../utils/paiementKkiapay';
+import { payerAvecFedapay } from '../utils/paiementFedapay';
 import { Champ, Etat, MessageErreur, Retour } from '../components/ui';
 
-const MOYENS = [
-  { cle: 'KKIAPAY', libelle: 'Mobile Money / Carte (KKiaPay)' },
-  { cle: 'AGENCE', libelle: 'Paiement en agence' },
-];
-const MOBILE_MONEY = ['MTN_MOMO', 'MOOV_MONEY', 'CELTIIS_CASH'];
 
 export default function ChaineDetail() {
   const { id } = useParams();
@@ -37,8 +32,7 @@ export default function ChaineDetail() {
 
   const [enAbonnement, setEnAbonnement] = useState(false);
   const [choixOuvert, setChoixOuvert] = useState(false);
-  const [moyen, setMoyen] = useState('KKIAPAY');
-  const [telephone, setTelephone] = useState(TELEPHONE_TEST_SANDBOX);
+  const moyen = 'FEDAPAY';
   const [enCours, setEnCours] = useState(false);
   const [erreurAchat, setErreurAchat] = useState(null);
   const [message, setMessage] = useState(null);
@@ -63,23 +57,19 @@ export default function ChaineDetail() {
 
   const rejoindre = async () => {
     if (!estConnecte) return versConnexion();
-    if (MOBILE_MONEY.includes(moyen) && telephone.trim().length < 8) return setErreurAchat('Renseignez un numéro Mobile Money valide.');
     setErreurAchat(null);
     setEnCours(true);
     try {
       const { data: transaction } = await client.post(`/api/live/chaines/${id}/fan-club/initier`, {
-        moyenPaiement: moyen, telephonePayeur: MOBILE_MONEY.includes(moyen) ? telephone.trim() : undefined,
+        moyenPaiement: moyen,
       });
-      if (moyen === 'KKIAPAY') {
-        setMessage('Ouverture du paiement KKiaPay…');
-        const finale = await payerAvecKkiapay({ transactionId: transaction.id, montantFcfa: transaction.montantFcfa, motif: 'Fan club My Addictive' });
-        if (finale.statut === 'REUSSI') { setMessage('Paiement confirmé : bienvenue dans le fan club !'); await rechargerFanClub(); }
-        else setMessage("Le paiement n'a pas abouti. Vous pouvez réessayer.");
+      if (moyen === 'FEDAPAY') {
+        setMessage('Redirection vers le paiement Mobile Money sécurisé…');
+        payerAvecFedapay(transaction);
+        return; // le client quitte le site : le résultat s'affiche à son retour (/paiement/retour/…)
       } else if (transaction.statut === 'REUSSI') {
         setMessage('Paiement confirmé : bienvenue dans le fan club !'); await rechargerFanClub();
-      } else if (moyen === 'AGENCE') {
-        setMessage("Demande enregistrée. Votre accès fan club s'activera une fois le paiement vérifié en agence.");
-      } else {
+            } else {
         setMessage('Demande envoyée sur votre téléphone. Validez avec votre code PIN pour activer votre accès.');
       }
       setChoixOuvert(false);
@@ -125,11 +115,7 @@ export default function ChaineDetail() {
                 </>
               ) : (
                 <>
-                  <div className="champ">
-                    <label htmlFor="moyen">Moyen de paiement</label>
-                    <select id="moyen" value={moyen} onChange={(e) => setMoyen(e.target.value)}>{MOYENS.map((m) => <option key={m.cle} value={m.cle}>{m.libelle}</option>)}</select>
-                  </div>
-                  {MOBILE_MONEY.includes(moyen) && <Champ label="Numéro Mobile Money" id="tel" inputMode="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />}
+                  <p className="petit attenue">Paiement Mobile Money sécurisé par FedaPay (MTN, Moov, Celtiis). Vous serez redirigé pour valider.</p>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button className="bouton degrade" onClick={rejoindre} disabled={enCours}>{enCours ? 'Traitement…' : 'Confirmer — 2 000 FCFA / mois'}</button>
                     <button className="bouton secondaire" onClick={() => setChoixOuvert(false)}>Annuler</button>

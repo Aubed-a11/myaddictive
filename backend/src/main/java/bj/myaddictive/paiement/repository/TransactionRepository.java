@@ -17,7 +17,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Optional<Transaction> findByIdTransactionExterne(String idTransactionExterne);
     List<Transaction> findByNotificationEnAttenteTrue();
 
-    /** Transaction KKiaPay en attente, creee recemment, pour le meme objet : reutilisee en cas de double clic / nouvelle tentative. */
+    /** Transaction FedaPay en attente, creee recemment, pour le meme objet : reutilisee en cas de double clic / nouvelle tentative. */
     Optional<Transaction> findFirstByUtilisateurIdAndMoyenPaiementAndTypeObjetAndReferenceIdAndStatutAndIdTransactionExterneIsNullAndDateCreationAfterOrderByDateCreationDesc(
             Long utilisateurId, MoyenPaiement moyenPaiement, bj.myaddictive.paiement.domain.TypeObjetPaiement typeObjet,
             String referenceId, StatutTransaction statut, java.time.Instant apres);

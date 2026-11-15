@@ -30,16 +30,19 @@ public class PaiementRelanceScheduler {
         this.paiementService = paiementService;
     }
 
-    /** Filet de securite KKiaPay : verifie aupres de KKiaPay les paiements lies mais non confirmes par webhook, et libere les abandonnes. */
-    @Scheduled(fixedDelay = 10_000)
-    public void relancerTransactionsKkiapay() {
+    /** Filet de securite FedaPay : verifie aupres de FedaPay les paiements en attente (webhook ou retour client manque). */
+    @Scheduled(fixedDelay = 15_000)
+    public void relancerTransactionsFedapay() {
         try {
-            for (Transaction t : paiementService.transactionsKkiapayEnAttente()) {
-                paiementService.verifierAupresDeKkiapay(t);
+            for (Transaction t : paiementService.transactionsFedapayEnAttente()) {
+                try {
+                    paiementService.relancerFedapay(t);
+                } catch (Exception e) {
+                    log.warn("Relance FedaPay de la transaction {} en erreur : {}", t.getId(), e.getMessage());
+                }
             }
-            paiementService.expirerAbandonnees();
         } catch (Exception e) {
-            log.warn("Relance KKiaPay en erreur : {}", e.getMessage());
+            log.warn("Relance FedaPay en erreur : {}", e.getMessage());
         }
     }
 

@@ -71,6 +71,16 @@ public class Transaction {
     public Instant getDateMaj() { return dateMaj; }
     public void setDateMaj(Instant dateMaj) { this.dateMaj = dateMaj; }
 
+    /**
+     * Adresse de la page de paiement FedaPay (Mobile Money) ou envoyer le client.
+     * Non stockee : renseignee uniquement dans la reponse a l'initiation.
+     */
+    @Transient
+    private String urlPaiement;
+
+    public String getUrlPaiement() { return urlPaiement; }
+    public void setUrlPaiement(String urlPaiement) { this.urlPaiement = urlPaiement; }
+
     public Boolean getNotificationEnAttente() { return notificationEnAttente; }
     public void setNotificationEnAttente(Boolean notificationEnAttente) { this.notificationEnAttente = notificationEnAttente; }
 }

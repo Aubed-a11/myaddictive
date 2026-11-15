@@ -40,7 +40,7 @@ La base SQLite est créée au premier démarrage dans `backend/data/myaddictive.
 
 Variables d'environnement du backend (toutes facultatives en développement) :
 
-`JWT_SECRET`, `CORS_ORIGINS` (ex. `https://mon-site.com`), `APP_DB_PATH`, `MEDIA_UPLOADS_PATH`, `COMPTE_UPLOADS_PATH`, `ADMIN_EMAIL`, `ADMIN_MOT_DE_PASSE`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `KKIAPAY_*`, `MTN_MOMO_*`, `SPRING_PROFILES_ACTIVE=prod` (refuse de démarrer avec le secret JWT de développement).
+`JWT_SECRET`, `CORS_ORIGINS` (ex. `https://mon-site.com`), `APP_DB_PATH`, `MEDIA_UPLOADS_PATH`, `COMPTE_UPLOADS_PATH`, `ADMIN_EMAIL`, `ADMIN_MOT_DE_PASSE`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `FEDAPAY_SECRET_KEY`, `FEDAPAY_SANDBOX`, `FEDAPAY_RETURN_BASE_URL`, `MTN_MOMO_*`, `SPRING_PROFILES_ACTIVE=prod` (refuse de démarrer avec le secret JWT de développement).
 
 Front / back-office : copier `.env.example` en `.env` et régler `VITE_API_BASE_URL` si le backend n'est pas sur `http://localhost:8080`.
 

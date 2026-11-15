@@ -13,7 +13,7 @@ src/main/java/bj/myaddictive/
 ├── live/        Événements, billetterie, chaînes, podcasts, chat en direct
 ├── votes/       Compétitions, candidats, votes, portefeuille de pièces
 ├── boutique/    Vendeurs, produits, panier, commandes
-└── paiement/    Transactions, KKiaPay, MTN MoMo, confirmation
+└── paiement/    Transactions, FedaPay (Mobile Money), MTN MoMo, confirmation
 ```
 
 Chaque domaine suit le même découpage : `controller/` (routes HTTP) → `service/` (logique) → `repository/` (base de données) → `domain/` (entités), avec `dto/` pour les formats d'échange.

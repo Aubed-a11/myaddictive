@@ -10,7 +10,7 @@ import java.net.URI;
 
 /**
  * Ajoute le jeton interne aux appels HTTP que l'application fait vers elle-meme (boucle locale).
- * Les appels vers des services externes (MTN, KKiaPay...) utilisent leur propre WebClient et ne
+ * Les appels vers des services externes (MTN, FedaPay...) utilisent leur propre WebClient et ne
  * recoivent jamais ce jeton ; ceux construits depuis le WebClient.Builder injecte ne l'ajoutent que
  * si l'adresse cible est localhost.
  */

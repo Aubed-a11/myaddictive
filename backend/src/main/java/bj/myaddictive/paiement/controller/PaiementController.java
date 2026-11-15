@@ -78,32 +78,32 @@ public class PaiementController {
     }
 
     /**
-     * Associe l'identifiant de transaction KKiaPay a la transaction interne
-     * correspondante, une fois le widget termine avec succes cote client
-     * (voir PaiementService.lierTransactionExterne : ne confirme jamais le
-     * paiement a lui seul, seul le webhook KKiaPay fait foi).
+     * Verification immediate d'un paiement FedaPay par le client au retour de la page de paiement
+     * (interroge FedaPay cote serveur ; ne fait jamais confiance au navigateur).
      */
-    @PostMapping("/transactions/{id}/lier-externe")
-    public ResponseEntity<Transaction> lierExterne(
+    @PostMapping("/transactions/{id}/verifier")
+    public ResponseEntity<Transaction> verifier(
             @RequestHeader(value = "X-User-Id", required = false) String userId,
-            @PathVariable Long id, @RequestBody Map<String, String> corps) {
+            @RequestHeader(value = "X-User-Role", required = false) String role,
+            @PathVariable Long id) {
         if (userId == null) throw new ApiException(HttpStatus.UNAUTHORIZED, "Connexion requise.");
-        return ResponseEntity.ok(paiementService.lierTransactionExterne(Long.valueOf(userId), id, corps.get("idTransactionExterne")));
+        return ResponseEntity.ok(paiementService.verifierPourUtilisateur(Long.valueOf(userId), "ADMINISTRATEUR".equals(role), id));
     }
 
     /**
-     * Webhook KKiaPay (mobile money, carte bancaire et autres en une seule
-     * integration - voir DEPLOIEMENT.md pour la procedure d'obtention des
-     * cles et de configuration du webhook sur le dashboard KKiaPay). Verifie
-     * l'en-tete x-kkiapay-secret avant tout traitement : sans cette
-     * verification, n'importe qui pourrait forger un faux succes de
-     * paiement en appelant directement cette URL.
+     * Webhook FedaPay (a declarer dans le tableau de bord FedaPay > Webhooks). Le contenu recu n'est
+     * jamais cru : il sert seulement a retrouver l'identifiant de la transaction, dont le vrai statut
+     * est ensuite verifie aupres de FedaPay (voir PaiementService.traiterWebhookFedapay).
      */
-    @PostMapping("/webhooks/kkiapay")
-    public ResponseEntity<Void> webhookKkiapay(
-            @RequestHeader(value = "x-kkiapay-secret", required = false) String secretRecu,
-            @RequestBody Map<String, Object> corps) {
-        paiementService.traiterWebhookKkiapay(secretRecu, corps);
+    @PostMapping("/webhooks/fedapay")
+    public ResponseEntity<Void> webhookFedapay(@RequestBody(required = false) Map<String, Object> corps) {
+        String id = null;
+        if (corps != null) {
+            Object entite = corps.get("entity");
+            if (entite instanceof Map<?, ?> m && m.get("id") != null) id = String.valueOf(m.get("id"));
+            else if (corps.get("id") != null) id = String.valueOf(corps.get("id"));
+        }
+        paiementService.traiterWebhookFedapay(id);
         return ResponseEntity.ok().build();
     }
 

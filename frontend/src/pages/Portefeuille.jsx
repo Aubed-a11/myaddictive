@@ -4,7 +4,7 @@ import client from '../api/client';
 import useCharger from '../utils/useCharger';
 import { dateCourte, fcfa } from '../utils/libelles';
 import { TAUX_PIECE_FCFA } from '../utils/votes';
-import { payerAvecKkiapay, TELEPHONE_TEST_SANDBOX } from '../utils/paiementKkiapay';
+import { payerAvecFedapay } from '../utils/paiementFedapay';
 import { Champ, EntetePage, Etat, MessageErreur, Modal } from '../components/ui';
 import ExigerConnexion from '../components/ExigerConnexion';
 
@@ -13,11 +13,6 @@ const PACKS = [
   { pieces: 55, prix: 50 * TAUX_PIECE_FCFA, bonus: '10 % de pièces offertes' },
   { pieces: 140, prix: 120 * TAUX_PIECE_FCFA, bonus: '15 % de pièces offertes' },
 ];
-const MOYENS = [
-  { cle: 'KKIAPAY', libelle: 'Mobile Money / Carte (KKiaPay)' },
-  { cle: 'AGENCE', libelle: 'Paiement en agence' },
-];
-const MOBILE_MONEY = ['MTN_MOMO', 'MOOV_MONEY', 'CELTIIS_CASH'];
 
 function WalletContenu() {
   const { data, chargement, erreur, recharger } = useCharger(async () => {
@@ -26,8 +21,7 @@ function WalletContenu() {
   }, [], { solde: 0, mouvements: [] });
   const [ouvert, setOuvert] = useState(false);
   const [pack, setPack] = useState(null);
-  const [moyen, setMoyen] = useState('KKIAPAY');
-  const [telephone, setTelephone] = useState(TELEPHONE_TEST_SANDBOX);
+  const moyen = 'FEDAPAY';
   const [erreurAchat, setErreurAchat] = useState(null);
   const [message, setMessage] = useState(null);
   const [enCours, setEnCours] = useState(false);
@@ -35,23 +29,19 @@ function WalletContenu() {
   const fermer = () => { setOuvert(false); setPack(null); setErreurAchat(null); };
 
   const acheter = async () => {
-    if (MOBILE_MONEY.includes(moyen) && telephone.trim().length < 8) return setErreurAchat('Renseignez un numéro Mobile Money valide.');
     setErreurAchat(null);
     setEnCours(true);
     try {
       const { data: transaction } = await client.post('/api/votes/portefeuille/acheter-pieces', {
         nombrePieces: pack.pieces, montantFcfa: pack.prix, moyenPaiement: moyen,
-        telephonePayeur: MOBILE_MONEY.includes(moyen) ? telephone.trim() : undefined,
       });
-      if (moyen === 'KKIAPAY') {
-        setMessage('Ouverture du paiement KKiaPay…');
-        const finale = await payerAvecKkiapay({ transactionId: transaction.id, montantFcfa: pack.prix, motif: `${pack.pieces} pièces My Addictive` });
-        setMessage(finale.statut === 'REUSSI' ? `${pack.pieces} pièces créditées.` : "Le paiement n'a pas abouti. Vous pouvez réessayer.");
+      if (moyen === 'FEDAPAY') {
+        setMessage('Redirection vers le paiement Mobile Money sécurisé…');
+        payerAvecFedapay(transaction);
+        return; // le client quitte le site : le résultat s'affiche à son retour (/paiement/retour/…)
       } else if (transaction.statut === 'REUSSI') {
         setMessage(`${pack.pieces} pièces créditées.`);
-      } else if (moyen === 'AGENCE') {
-        setMessage("Demande enregistrée. Présentez-vous à l'agence : vos pièces seront créditées une fois le paiement vérifié.");
-      } else {
+            } else {
         setMessage('Demande envoyée sur votre téléphone. Validez avec votre code PIN : vos pièces seront créditées dès confirmation.');
       }
       fermer();
@@ -107,12 +97,7 @@ function WalletContenu() {
           ) : (
             <>
               <MessageErreur message={erreurAchat} />
-              <div className="champ">
-                <label htmlFor="moyen">Moyen de paiement</label>
-                <select id="moyen" value={moyen} onChange={(e) => setMoyen(e.target.value)}>{MOYENS.map((m) => <option key={m.cle} value={m.cle}>{m.libelle}</option>)}</select>
-              </div>
-              {MOBILE_MONEY.includes(moyen) && <Champ label="Numéro Mobile Money" id="tel" inputMode="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />}
-              {moyen === 'AGENCE' && <p className="petit attenue">Les pièces ne seront créditées qu'après vérification de votre paiement en agence.</p>}
+              <p className="petit attenue">Paiement Mobile Money sécurisé par FedaPay (MTN, Moov, Celtiis). Vous serez redirigé pour valider.</p>
               <button className="bouton degrade plein" onClick={acheter} disabled={enCours}>{enCours ? 'Traitement…' : "Confirmer l'achat"}</button>
               <button className="bouton secondaire plein" style={{ marginTop: 8 }} onClick={() => setPack(null)}>← Changer de pack</button>
             </>

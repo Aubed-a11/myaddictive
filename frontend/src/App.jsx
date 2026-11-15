@@ -38,6 +38,7 @@ import Favoris from './pages/Favoris';
 import Parametres from './pages/Parametres';
 import Transactions from './pages/Transactions';
 import Badges from './pages/Badges';
+import PaiementRetour from './pages/PaiementRetour';
 
 /** Remonte en haut de page à chaque changement d'écran. */
 function RemonterEnHaut() {
@@ -95,6 +96,7 @@ export default function App() {
                 <Route path="/favoris" element={<Favoris />} />
                 <Route path="/parametres" element={<Parametres />} />
                 <Route path="/transactions" element={<Transactions />} />
+                <Route path="/paiement/retour/:id" element={<PaiementRetour />} />
                 <Route path="/badges" element={<Badges />} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />

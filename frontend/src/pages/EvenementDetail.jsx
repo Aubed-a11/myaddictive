@@ -8,16 +8,11 @@ import useCharger from '../utils/useCharger';
 import useFavori from '../utils/useFavori';
 import { partagerContenu } from '../utils/partage';
 import { dateHeure, fcfa, formaterLibelle } from '../utils/libelles';
-import { payerAvecKkiapay, TELEPHONE_TEST_SANDBOX } from '../utils/paiementKkiapay';
+import { payerAvecFedapay } from '../utils/paiementFedapay';
 import { Champ, Etat, Image, MessageErreur, Retour } from '../components/ui';
 import LienVideo from '../components/LienVideo';
 import SondageEnDirect from '../components/SondageEnDirect';
 
-const MOYENS = [
-  { cle: 'KKIAPAY', libelle: 'Mobile Money / Carte (KKiaPay)' },
-  { cle: 'AGENCE', libelle: 'Paiement en agence' },
-];
-const MOBILE_MONEY = ['MTN_MOMO', 'MOOV_MONEY', 'CELTIIS_CASH'];
 
 /** Pastille d'urgence quand le stock est bas. */
 function urgence(restantes, capacite) {
@@ -39,8 +34,7 @@ export default function EvenementDetail() {
 
   const [spectateurs, setSpectateurs] = useState(0);
   const [categorie, setCategorie] = useState('STANDARD');
-  const [moyen, setMoyen] = useState('KKIAPAY');
-  const [telephone, setTelephone] = useState(TELEPHONE_TEST_SANDBOX);
+  const moyen = 'FEDAPAY';
   const [enCours, setEnCours] = useState(false);
   const [erreurAchat, setErreurAchat] = useState(null);
   const [message, setMessage] = useState(null);
@@ -73,30 +67,20 @@ export default function EvenementDetail() {
 
   const acheter = async () => {
     if (!estConnecte) return versConnexion();
-    if (MOBILE_MONEY.includes(moyen) && telephone.trim().length < 8) return setErreurAchat('Renseignez un numéro Mobile Money valide.');
     setErreurAchat(null);
     setMessage(null);
     setEnCours(true);
     try {
       const { data: transaction } = await client.post('/api/live/billets/initier-achat', {
         evenementId: Number(id), categorie, moyenPaiement: moyen,
-        telephonePayeur: MOBILE_MONEY.includes(moyen) ? telephone.trim() : undefined,
       });
-      if (moyen === 'KKIAPAY') {
-        setMessage('Ouverture du paiement KKiaPay…');
-        const finale = await payerAvecKkiapay({
-          transactionId: transaction.id,
-          montantFcfa: categorie === 'VIP' ? evenement.prixVipFcfa : evenement.prixStandardFcfa,
-          motif: `Billet ${evenement.titre}`,
-        });
-        setMessage(finale.statut === 'REUSSI'
-          ? 'Paiement confirmé : retrouvez votre billet (QR code) dans « Mes billets ».'
-          : "Le paiement n'a pas abouti. Vous pouvez réessayer.");
+      if (moyen === 'FEDAPAY') {
+        setMessage('Redirection vers le paiement Mobile Money sécurisé…');
+        payerAvecFedapay(transaction);
+        return; // le client quitte le site : le résultat s'affiche à son retour (/paiement/retour/…)
       } else if (transaction.statut === 'REUSSI') {
         setMessage('Paiement confirmé : retrouvez votre billet (QR code) dans « Mes billets ».');
-      } else if (moyen === 'AGENCE') {
-        setMessage("Demande enregistrée. Présentez-vous à l'agence pour régler le montant : votre billet sera disponible dans « Mes billets » une fois le paiement vérifié.");
-      } else {
+            } else {
         setMessage('Paiement en cours de vérification. Votre billet apparaîtra dans « Mes billets » dès sa confirmation.');
       }
     } catch (e) {
@@ -154,14 +138,7 @@ export default function EvenementDetail() {
                         );
                       })}
                     </div>
-                    <div className="champ" style={{ marginTop: 14 }}>
-                      <label htmlFor="moyen">Moyen de paiement</label>
-                      <select id="moyen" value={moyen} onChange={(e) => setMoyen(e.target.value)}>
-                        {MOYENS.map((m) => <option key={m.cle} value={m.cle}>{m.libelle}</option>)}
-                      </select>
-                    </div>
-                    {MOBILE_MONEY.includes(moyen) && <Champ label="Numéro Mobile Money" id="tel" inputMode="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} placeholder="ex. 90000000" />}
-                    {moyen === 'AGENCE' && <p className="petit attenue">Le billet ne sera disponible qu'après vérification de votre paiement en agence.</p>}
+                    <p className="petit attenue" style={{ marginTop: 14 }}>Paiement Mobile Money sécurisé par FedaPay (MTN, Moov, Celtiis). Vous serez redirigé pour valider.</p>
                     <MessageErreur message={erreurAchat} />
                     {message && <p className="message-ok">{message}</p>}
                     <button className="bouton plein" onClick={acheter} disabled={enCours || complet}>{complet ? 'Complet' : enCours ? 'Traitement…' : 'Réserver maintenant'}</button>
