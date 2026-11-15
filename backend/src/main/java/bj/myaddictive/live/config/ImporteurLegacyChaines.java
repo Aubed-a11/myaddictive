@@ -1,10 +1,13 @@
 package bj.myaddictive.live.config;
 
+import bj.myaddictive.compte.domain.Utilisateur;
+import bj.myaddictive.compte.repository.UtilisateurRepository;
 import bj.myaddictive.live.domain.Chaine;
 import bj.myaddictive.live.repository.ChaineRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.annotation.Order;
@@ -26,9 +29,15 @@ public class ImporteurLegacyChaines implements CommandLineRunner {
     private static final String FICHIER = "legacy/chaines_legacy.json";
 
     private final ChaineRepository chaineRepository;
+    private final UtilisateurRepository utilisateurRepository;
+    private final String emailAdmin;
 
-    public ImporteurLegacyChaines(ChaineRepository chaineRepository) {
+    public ImporteurLegacyChaines(ChaineRepository chaineRepository,
+                                  UtilisateurRepository utilisateurRepository,
+                                  @Value("${admin.email:admin@myaddictive.com}") String emailAdmin) {
         this.chaineRepository = chaineRepository;
+        this.utilisateurRepository = utilisateurRepository;
+        this.emailAdmin = emailAdmin;
     }
 
     private record LigneImport(
@@ -40,6 +49,16 @@ public class ImporteurLegacyChaines implements CommandLineRunner {
     public void run(String... args) throws Exception {
         if (chaineRepository.count() > 3) {
             log.info("Import legacy des chaines deja effectue ({} chaines en base), etape ignoree.", chaineRepository.count());
+            return;
+        }
+
+        // Les chaines importees appartiennent au compte administrateur
+        // (colonne proprietaire_utilisateur_id obligatoire).
+        Long proprietaireId = utilisateurRepository.findByEmail(emailAdmin)
+                .map(Utilisateur::getId)
+                .orElse(null);
+        if (proprietaireId == null) {
+            log.warn("Compte administrateur {} introuvable : import legacy des chaines reporte au prochain demarrage.", emailAdmin);
             return;
         }
 
@@ -66,6 +85,7 @@ public class ImporteurLegacyChaines implements CommandLineRunner {
                 c.setNom(ligne.nom());
                 c.setDescription(ligne.description());
                 c.setImageUrl(ligne.imageUrl());
+                c.setProprietaireUtilisateurId(proprietaireId);
                 c.setNombreAbonnes(0L);
                 chaineRepository.save(c);
                 importes++;

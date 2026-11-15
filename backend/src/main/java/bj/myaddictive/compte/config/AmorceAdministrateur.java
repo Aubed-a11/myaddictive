@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  * ADMIN_MOT_DE_PASSE ; a changer immediatement en production.
  */
 @Component
-@Order(1)
+@Order(0) // en premier : d'autres amorces (ex. chaines legacy) ont besoin du compte admin
 public class AmorceAdministrateur implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(AmorceAdministrateur.class);
