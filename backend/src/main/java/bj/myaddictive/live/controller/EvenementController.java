@@ -133,6 +133,19 @@ public class EvenementController {
         return ResponseEntity.ok(liveService.mesBillets(Long.valueOf(userId)));
     }
 
+    /** Debut du live : le client saisit le code personnel de son billet pour debloquer le direct et le chat. */
+    @PostMapping("/billets/debloquer-live")
+    public ResponseEntity<Void> debloquerLive(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestBody Map<String, Object> corps) {
+        if (userId == null) throw new ApiException(HttpStatus.UNAUTHORIZED, "Connexion requise.");
+        Object evenementId = corps.get("evenementId");
+        if (evenementId == null) throw new ApiException(HttpStatus.BAD_REQUEST, "Evenement manquant.");
+        liveService.debloquerAccesLive(Long.valueOf(userId), Long.valueOf(String.valueOf(evenementId)),
+                corps.get("code") == null ? null : String.valueOf(corps.get("code")));
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/billets/scanner/{codeQr}")
     public ResponseEntity<Billet> scanner(
             @RequestHeader(value = "X-User-Role", required = false) String role,

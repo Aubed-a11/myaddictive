@@ -71,14 +71,52 @@ public class LiveService {
         if (utilisateurId != null && utilisateurId.equals(evenement.getUtilisateurCreateurId())) return evenement;
         boolean possedeBillet = utilisateurId != null
                 && billetRepository.existsByUtilisateurIdAndEvenementIdAndStatutNot(utilisateurId, evenement.getId(), "ANNULE");
-        if (possedeBillet) return evenement;
+        // Le direct exige en plus la saisie du code d'acces live (voir debloquerAccesLive).
+        boolean accesDirect = possedeBillet
+                && billetRepository.existsByUtilisateurIdAndEvenementIdAndStatutNotAndAccesLiveDebloqueTrue(utilisateurId, evenement.getId(), "ANNULE");
+        if (possedeBillet && accesDirect) return evenement;
         // Detache l'entite : le masquage ne doit jamais etre enregistre en base par un flush ulterieur.
         if (entityManager != null && entityManager.contains(evenement)) entityManager.detach(evenement);
         evenement.setUrlFlux(null);
-        evenement.setUrlReplay(null);
+        if (!possedeBillet) evenement.setUrlReplay(null); // le replay reste accessible avec un billet payant
         return evenement;
     }
 
+    private static final String ALPHABET_CODE = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sans 0/O/1/I : lisible a l'oral
+    private static final java.security.SecureRandom ALEA = new java.security.SecureRandom();
+
+    /** Code personnel de 8 caracteres genere a l'emission du billet. */
+    public static String genererCodeAcces() {
+        StringBuilder sb = new StringBuilder(8);
+        for (int i = 0; i < 8; i++) sb.append(ALPHABET_CODE.charAt(ALEA.nextInt(ALPHABET_CODE.length())));
+        return sb.toString();
+    }
+
+    private static String normaliserCode(String code) {
+        return code == null ? "" : code.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+    }
+
+    /**
+     * Au debut du live, le client saisit le code personnel de son billet pour debloquer le direct et le chat.
+     * Refuse si le live n'a pas commence, si le client n'a pas de billet valide ou si le code est faux.
+     */
+    public void debloquerAccesLive(Long utilisateurId, Long evenementId, String code) {
+        Evenement evenement = obtenirEvenement(evenementId);
+        if (!evenement.isPayant()) return;
+        if (evenement.getStatut() != bj.myaddictive.live.domain.StatutEvenement.EN_DIRECT) {
+            throw new ApiException(HttpStatus.CONFLICT, "Le direct n'a pas encore commence : revenez saisir votre code au debut du live.");
+        }
+        String saisi = normaliserCode(code);
+        for (Billet billet : billetRepository.findByUtilisateurIdAndEvenementId(utilisateurId, evenementId)) {
+            if ("ANNULE".equals(billet.getStatut())) continue;
+            if (!saisi.isEmpty() && saisi.equals(normaliserCode(billet.getCodeAcces()))) {
+                billet.setAccesLiveDebloque(true);
+                billetRepository.save(billet);
+                return;
+            }
+        }
+        throw new ApiException(HttpStatus.FORBIDDEN, "Code d'acces incorrect. Retrouvez-le dans Mes billets.");
+    }
 
     /**
      * Verifie que l'utilisateur peut acceder au live (chat, etc.) d'un evenement :
@@ -92,11 +130,11 @@ public class LiveService {
         if (!evenement.isPayant()) return;
         // Le createur de l'evenement y accede toujours (comme pour le lien de diffusion).
         if (utilisateurId != null && utilisateurId.equals(evenement.getUtilisateurCreateurId())) return;
-        boolean possedeBillet = utilisateurId != null && billetRepository.existsByUtilisateurIdAndEvenementIdAndStatutNot(
+        boolean acces = utilisateurId != null && billetRepository.existsByUtilisateurIdAndEvenementIdAndStatutNotAndAccesLiveDebloqueTrue(
                 utilisateurId, evenementId, "ANNULE");
-        if (!possedeBillet) {
+        if (!acces) {
             throw new ApiException(HttpStatus.FORBIDDEN,
-                    "Un billet valide (paiement confirme) est necessaire pour acceder a cet evenement.");
+                    "Un billet valide (paiement confirme) et la saisie de votre code d'acces live sont necessaires pour acceder a ce direct.");
         }
     }
 
@@ -241,6 +279,10 @@ public class LiveService {
     public List<bj.myaddictive.live.dto.BilletResponse> mesBillets(Long utilisateurId) {
         return billetRepository.findByUtilisateurId(utilisateurId).stream()
                 .map(billet -> {
+                    if (billet.getCodeAcces() == null) { // billet emis avant l'ajout du code d'acces
+                        billet.setCodeAcces(genererCodeAcces());
+                        billet = billetRepository.save(billet);
+                    }
                     Evenement evenement = evenementRepository.findById(billet.getEvenementId()).orElse(null);
                     return bj.myaddictive.live.dto.BilletResponse.fromEntities(billet, evenement);
                 })

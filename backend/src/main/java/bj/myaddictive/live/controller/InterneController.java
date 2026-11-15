@@ -66,6 +66,7 @@ public class InterneController {
         billet.setCategorie(CategorieBillet.valueOf(categorie));
         billet.setCodeQr("MYADD-BILLET-" + UUID.randomUUID());
         billet.setTransactionId(transactionId);
+        billet.setCodeAcces(LiveService.genererCodeAcces());
         billetRepository.save(billet);
         liveService.libererReservation(transactionId);
         log.info("Billet emis pour l'evenement {} (utilisateur {}, transaction {}).", evenementId, utilisateurId, transactionId);

@@ -15,4 +15,7 @@ public interface BilletRepository extends JpaRepository<Billet, Long> {
     long countByEvenementIdAndCategorieAndStatutNot(Long evenementId, CategorieBillet categorie, String statut);
     /** Verifie qu'un utilisateur possede un billet valide (non annule) pour un evenement donne. */
     boolean existsByUtilisateurIdAndEvenementIdAndStatutNot(Long utilisateurId, Long evenementId, String statut);
+    /** Billet valide dont le proprietaire a saisi le code d'acces live (direct et chat debloques). */
+    boolean existsByUtilisateurIdAndEvenementIdAndStatutNotAndAccesLiveDebloqueTrue(Long utilisateurId, Long evenementId, String statut);
+    List<Billet> findByUtilisateurIdAndEvenementId(Long utilisateurId, Long evenementId);
 }

@@ -14,7 +14,8 @@ import java.time.Instant;
 public record BilletResponse(
         Long id, String categorie, String codeQr, String statut,
         Instant dateAchat, Instant dateScan,
-        Long evenementId, String evenementTitre, String evenementLieu, Instant evenementDateDebut, String evenementImageUrl
+        Long evenementId, String evenementTitre, String evenementLieu, Instant evenementDateDebut, String evenementImageUrl,
+        String codeAcces, boolean accesLiveDebloque
 ) {
     public static BilletResponse fromEntities(Billet billet, Evenement evenement) {
         return new BilletResponse(
@@ -24,7 +25,8 @@ public record BilletResponse(
                 evenement != null ? evenement.getTitre() : "Evenement indisponible",
                 evenement != null ? evenement.getLieu() : null,
                 evenement != null ? evenement.getDateDebut() : null,
-                evenement != null ? evenement.getImageUrl() : null
+                evenement != null ? evenement.getImageUrl() : null,
+                billet.getCodeAcces(), Boolean.TRUE.equals(billet.getAccesLiveDebloque())
         );
     }
 }

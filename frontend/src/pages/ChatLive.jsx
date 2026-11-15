@@ -86,8 +86,8 @@ export default function ChatLive() {
         <Retour vers={`/evenements/${id}`} />
         <div className="carte" style={{ textAlign: 'center' }}>
           <h2>Billet requis</h2>
-          <p className="attenue">Le chat en direct est réservé aux détenteurs d'un billet payé pour cet événement.</p>
-          <div style={{ marginTop: 14 }}><Link className="bouton" to={`/evenements/${id}`}>Réserver ma place</Link></div>
+          <p className="attenue">Le chat en direct est réservé aux détenteurs d'un billet payé qui ont saisi leur code d'accès au live.</p>
+          <div style={{ marginTop: 14 }}><Link className="bouton" to={`/evenements/${id}`}>Débloquer le live</Link></div>
         </div>
       </div>
     );

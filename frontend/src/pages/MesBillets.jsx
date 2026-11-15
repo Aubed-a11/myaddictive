@@ -33,6 +33,13 @@ function Billets() {
               </span>
             </p>
             {b.statut === 'UTILISE' && b.dateScan && <p className="petit attenue">Scanné le {dateHeure(b.dateScan)}</p>}
+            {b.statut !== 'ANNULE' && b.codeAcces && (
+              <div style={{ background: 'var(--fond-2, rgba(128,128,128,.12))', borderRadius: 10, padding: '10px 12px', margin: '10px 0', textAlign: 'center' }}>
+                <p className="petit attenue" style={{ margin: 0 }}>Code d'accès au live</p>
+                <p style={{ fontSize: 22, fontWeight: 800, letterSpacing: 3, margin: '4px 0', fontFamily: 'monospace' }}>{b.codeAcces.slice(0, 4)}-{b.codeAcces.slice(4)}</p>
+                <p className="petit attenue" style={{ margin: 0 }}>{b.accesLiveDebloque ? '✔ Live débloqué' : 'À saisir sur la page de l\'événement au début du live, pour débloquer le direct.'}</p>
+              </div>
+            )}
             <p className="petit attenue" style={{ marginTop: 8 }}>Présentez ce code QR à l'entrée : un agent le scannera pour valider votre accès. Chaque billet ne peut être scanné qu'une seule fois.</p>
           </div>
         ))}

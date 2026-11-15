@@ -28,7 +28,7 @@ export default function EvenementDetail() {
   const { pathname } = useLocation();
   const { estConnecte } = useAuth();
   const notifier = useNotifier();
-  const { data: evenement, chargement, erreur } = useCharger(() => client.get(`/api/live/evenements/${id}`).then((r) => r.data), [id]);
+  const { data: evenement, chargement, erreur, recharger } = useCharger(() => client.get(`/api/live/evenements/${id}`).then((r) => r.data), [id]);
   const { data: dispo } = useCharger(() => client.get(`/api/live/evenements/${id}/disponibilite`).then((r) => r.data).catch(() => null), [id]);
   const { favori, basculer } = useFavori('EVENEMENT', id);
 
@@ -38,14 +38,22 @@ export default function EvenementDetail() {
   const [enCours, setEnCours] = useState(false);
   const [erreurAchat, setErreurAchat] = useState(null);
   const [message, setMessage] = useState(null);
-  const [aBillet, setABillet] = useState(false);
+  const [monBillet, setMonBillet] = useState(null);
+  const [codeLive, setCodeLive] = useState('');
+  const [erreurCode, setErreurCode] = useState(null);
+  const [verifCode, setVerifCode] = useState(false);
+  const aBillet = !!monBillet;
 
   // Billet valide (paiement confirme) pour cet evenement ? Determine l'acces au direct, au replay et au chat.
   useEffect(() => {
-    if (!estConnecte) { setABillet(false); return undefined; }
+    if (!estConnecte) { setMonBillet(null); return undefined; }
     let actif = true;
     client.get('/api/live/billets/mes-billets')
-      .then(({ data }) => actif && setABillet((data || []).some((b) => String(b.evenementId) === String(id) && b.statut !== 'ANNULE')))
+      .then(({ data }) => {
+        if (!actif) return;
+        const mes = (data || []).filter((b) => String(b.evenementId) === String(id) && b.statut !== 'ANNULE');
+        setMonBillet(mes.find((b) => b.accesLiveDebloque) || mes[0] || null);
+      })
       .catch(() => {});
     return () => { actif = false; };
   }, [estConnecte, id]);
@@ -75,6 +83,24 @@ export default function EvenementDetail() {
 
   const restantes = categorie === 'STANDARD' ? dispo?.standardRestantes : dispo?.vipRestantes;
   const complet = dispo != null && restantes === 0;
+
+  const peutVoirDirect = !evenement?.payant || !!monBillet?.accesLiveDebloque || !!evenement?.urlFlux;
+
+  const debloquerLive = async (e) => {
+    e.preventDefault();
+    setErreurCode(null);
+    setVerifCode(true);
+    try {
+      await client.post('/api/live/billets/debloquer-live', { evenementId: Number(id), code: codeLive.trim() });
+      setMonBillet((b) => (b ? { ...b, accesLiveDebloque: true } : b));
+      setCodeLive('');
+      await recharger(); // recupere le lien du direct, maintenant autorise
+    } catch (err) {
+      setErreurCode(err.message);
+    } finally {
+      setVerifCode(false);
+    }
+  };
 
   const acheter = async () => {
     if (!estConnecte) return versConnexion();
@@ -127,14 +153,25 @@ export default function EvenementDetail() {
                 {evenement.description && <p style={{ lineHeight: 1.6 }}>{evenement.description}</p>}
 
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '16px 0' }}>
-                  {evenement.payant && !aBillet && (evenement.statut === 'EN_DIRECT' || evenement.statut === 'REPLAY') && (
+                  {evenement.payant && !aBillet && !evenement.urlFlux && (evenement.statut === 'EN_DIRECT' || evenement.statut === 'REPLAY') && (
                     <p className="attenue petit">🔒 Un billet payé est nécessaire pour accéder {evenement.statut === 'REPLAY' ? 'au replay' : 'au direct'}. Réservez votre place ci-dessous.</p>
                   )}
-                  {(!evenement.payant || aBillet) && enDirect && <LienVideo danger url={evenement.urlFlux} libelle="Regarder le direct" messageAbsent="Le direct n'est pas encore disponible." />}
-                  {(!evenement.payant || aBillet) && evenement.statut === 'REPLAY' && <LienVideo url={evenement.urlReplay} libelle="Voir le replay" messageAbsent="Le replay n'est pas encore disponible." />}
-                  {(!evenement.payant || aBillet) && enDirect && <Link className="bouton secondaire" to={`/evenements/${id}/chat`}><MessageCircle size={16} /> Chat en direct</Link>}
+                  {peutVoirDirect && enDirect && <LienVideo danger url={evenement.urlFlux} libelle="Regarder le direct" messageAbsent="Le direct n'est pas encore disponible." />}
+                  {(!evenement.payant || aBillet || evenement.urlReplay) && evenement.statut === 'REPLAY' && <LienVideo url={evenement.urlReplay} libelle="Voir le replay" messageAbsent="Le replay n'est pas encore disponible." />}
+                  {peutVoirDirect && enDirect && <Link className="bouton secondaire" to={`/evenements/${id}/chat`}><MessageCircle size={16} /> Chat en direct</Link>}
                   {evenement.payant && aBillet && <Link className="bouton secondaire" to="/mes-billets">🎟 Mon billet</Link>}
                 </div>
+                {evenement.payant && aBillet && enDirect && !peutVoirDirect && (
+                  <form className="carte" onSubmit={debloquerLive} style={{ marginBottom: 16 }}>
+                    <h2 className="titre-section">Le live a commencé 🔴</h2>
+                    <p className="attenue petit">Saisissez le code d'accès de votre billet (visible dans « Mes billets ») pour débloquer le direct.</p>
+                    <MessageErreur message={erreurCode} />
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <input value={codeLive} onChange={(e) => setCodeLive(e.target.value)} placeholder="XXXX-XXXX" aria-label="Code d'accès au live" autoCapitalize="characters" autoComplete="off" style={{ flex: '1 1 160px', minWidth: 0, textTransform: 'uppercase', letterSpacing: 2, fontFamily: 'monospace' }} />
+                      <button className="bouton" disabled={verifCode || !codeLive.trim()}>{verifCode ? 'Vérification…' : 'Débloquer le live'}</button>
+                    </div>
+                  </form>
+                )}
 
                 {evenement.payant && evenement.statut !== 'TERMINE' && (
                   <div className="carte">

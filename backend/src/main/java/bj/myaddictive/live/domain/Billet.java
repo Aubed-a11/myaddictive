@@ -40,6 +40,14 @@ public class Billet {
     @Column(name = "date_scan")
     private Instant dateScan;
 
+    /** Code personnel (8 caracteres) a saisir au debut du live pour debloquer l'acces au direct. */
+    @Column(name = "code_acces")
+    private String codeAcces;
+
+    /** TRUE une fois le code saisi correctement par le proprietaire du billet. NULL/FALSE : acces au direct verrouille. */
+    @Column(name = "acces_live_debloque")
+    private Boolean accesLiveDebloque;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getEvenementId() { return evenementId; }
@@ -60,4 +68,9 @@ public class Billet {
     public void setDateAchat(Instant dateAchat) { this.dateAchat = dateAchat; }
     public Instant getDateScan() { return dateScan; }
     public void setDateScan(Instant dateScan) { this.dateScan = dateScan; }
+
+    public String getCodeAcces() { return codeAcces; }
+    public void setCodeAcces(String codeAcces) { this.codeAcces = codeAcces; }
+    public Boolean getAccesLiveDebloque() { return accesLiveDebloque; }
+    public void setAccesLiveDebloque(Boolean accesLiveDebloque) { this.accesLiveDebloque = accesLiveDebloque; }
 }
