@@ -90,7 +90,9 @@ public class LiveService {
     public void verifierAccesLive(Long evenementId, Long utilisateurId) {
         Evenement evenement = obtenirEvenement(evenementId);
         if (!evenement.isPayant()) return;
-        boolean possedeBillet = billetRepository.existsByUtilisateurIdAndEvenementIdAndStatutNot(
+        // Le createur de l'evenement y accede toujours (comme pour le lien de diffusion).
+        if (utilisateurId != null && utilisateurId.equals(evenement.getUtilisateurCreateurId())) return;
+        boolean possedeBillet = utilisateurId != null && billetRepository.existsByUtilisateurIdAndEvenementIdAndStatutNot(
                 utilisateurId, evenementId, "ANNULE");
         if (!possedeBillet) {
             throw new ApiException(HttpStatus.FORBIDDEN,

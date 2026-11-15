@@ -22,6 +22,7 @@ export default function ChatLive() {
   const [spectateurs, setSpectateurs] = useState(0);
   const [texte, setTexte] = useState('');
   const [reactions, setReactions] = useState([]);
+  const [accesRefuse, setAccesRefuse] = useState(false);
   const fin = useRef(null);
   const derniereReaction = useRef(Date.now());
 
@@ -40,8 +41,8 @@ export default function ChatLive() {
           client.get(`/api/live/evenements/${id}/messages`),
           client.get(`/api/live/evenements/${id}/spectateurs`),
         ]);
-        if (actif) { setMessages(msgs || []); setSpectateurs(nb); }
-      } catch { /* silencieux */ }
+        if (actif) { setMessages(msgs || []); setSpectateurs(nb); setAccesRefuse(false); }
+      } catch (e) { if (actif && /billet/i.test(e?.message || '')) setAccesRefuse(true); }
     };
     rafraichir();
     const t = setInterval(rafraichir, 4000);
@@ -78,6 +79,19 @@ export default function ChatLive() {
       setMessages(data || []);
     } catch { /* ignoré */ }
   };
+
+  if (accesRefuse) {
+    return (
+      <div style={{ maxWidth: 720, margin: '0 auto' }}>
+        <Retour vers={`/evenements/${id}`} />
+        <div className="carte" style={{ textAlign: 'center' }}>
+          <h2>Billet requis</h2>
+          <p className="attenue">Le chat en direct est réservé aux détenteurs d'un billet payé pour cet événement.</p>
+          <div style={{ marginTop: 14 }}><Link className="bouton" to={`/evenements/${id}`}>Réserver ma place</Link></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto' }}>

@@ -158,7 +158,10 @@ public class EvenementController {
 
     /** Chat en direct (section 6.5). Lecture libre, ecriture reservee aux connectes. */
     @GetMapping("/evenements/{id}/messages")
-    public ResponseEntity<List<MessageChat>> messages(@PathVariable Long id) {
+    public ResponseEntity<List<MessageChat>> messages(
+            @RequestHeader(value = "X-User-Id", required = false) String userId, @PathVariable Long id) {
+        // Evenement payant : le chat n'est lisible qu'avec un billet valide (paiement confirme).
+        liveService.verifierAccesLive(id, userId == null ? null : Long.valueOf(userId));
         return ResponseEntity.ok(chatLiveService.obtenirMessages(id));
     }
 

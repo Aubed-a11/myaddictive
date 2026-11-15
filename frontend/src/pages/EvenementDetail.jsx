@@ -38,6 +38,17 @@ export default function EvenementDetail() {
   const [enCours, setEnCours] = useState(false);
   const [erreurAchat, setErreurAchat] = useState(null);
   const [message, setMessage] = useState(null);
+  const [aBillet, setABillet] = useState(false);
+
+  // Billet valide (paiement confirme) pour cet evenement ? Determine l'acces au direct, au replay et au chat.
+  useEffect(() => {
+    if (!estConnecte) { setABillet(false); return undefined; }
+    let actif = true;
+    client.get('/api/live/billets/mes-billets')
+      .then(({ data }) => actif && setABillet((data || []).some((b) => String(b.evenementId) === String(id) && b.statut !== 'ANNULE')))
+      .catch(() => {});
+    return () => { actif = false; };
+  }, [estConnecte, id]);
 
   const enDirect = evenement?.statut === 'EN_DIRECT';
   useEffect(() => {
@@ -116,9 +127,13 @@ export default function EvenementDetail() {
                 {evenement.description && <p style={{ lineHeight: 1.6 }}>{evenement.description}</p>}
 
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '16px 0' }}>
-                  {enDirect && <LienVideo danger url={evenement.urlFlux} libelle="Regarder le direct" messageAbsent="Le direct n'est pas encore disponible." />}
-                  {evenement.statut === 'REPLAY' && <LienVideo url={evenement.urlReplay} libelle="Voir le replay" messageAbsent="Le replay n'est pas encore disponible." />}
-                  {enDirect && <Link className="bouton secondaire" to={`/evenements/${id}/chat`}><MessageCircle size={16} /> Chat en direct</Link>}
+                  {evenement.payant && !aBillet && (evenement.statut === 'EN_DIRECT' || evenement.statut === 'REPLAY') && (
+                    <p className="attenue petit">🔒 Un billet payé est nécessaire pour accéder {evenement.statut === 'REPLAY' ? 'au replay' : 'au direct'}. Réservez votre place ci-dessous.</p>
+                  )}
+                  {(!evenement.payant || aBillet) && enDirect && <LienVideo danger url={evenement.urlFlux} libelle="Regarder le direct" messageAbsent="Le direct n'est pas encore disponible." />}
+                  {(!evenement.payant || aBillet) && evenement.statut === 'REPLAY' && <LienVideo url={evenement.urlReplay} libelle="Voir le replay" messageAbsent="Le replay n'est pas encore disponible." />}
+                  {(!evenement.payant || aBillet) && enDirect && <Link className="bouton secondaire" to={`/evenements/${id}/chat`}><MessageCircle size={16} /> Chat en direct</Link>}
+                  {evenement.payant && aBillet && <Link className="bouton secondaire" to="/mes-billets">🎟 Mon billet</Link>}
                 </div>
 
                 {evenement.payant && evenement.statut !== 'TERMINE' && (
