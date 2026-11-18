@@ -30,6 +30,10 @@ public class Article {
     private String artisteLie;
 
     /** Lien video (embed YouTube) pour les articles de categorie VIDEO. */
+    /** Auteur / redacteur (ex. "La Redaction"). */
+    @Column(name = "auteur")
+    private String auteur;
+
     @Column(name = "video_url")
     private String videoUrl;
 
@@ -64,6 +68,8 @@ public class Article {
     public void setCategorie(String categorie) { this.categorie = categorie; }
     public String getArtisteLie() { return artisteLie; }
     public void setArtisteLie(String artisteLie) { this.artisteLie = artisteLie; }
+    public String getAuteur() { return auteur; }
+    public void setAuteur(String auteur) { this.auteur = auteur; }
     public String getVideoUrl() { return videoUrl; }
     public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
     public Long getCompteurVues() { return compteurVues; }

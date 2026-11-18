@@ -53,6 +53,7 @@ export default function Article() {
             </div>
             <p style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '4px 0 18px' }}>
               <span className="badge bleu">{formaterLibelle(article.categorie)}</span>
+              {article.auteur && <span className="badge">Par {article.auteur}</span>}
               {article.compteurVues > 0 && <span className="badge"><Eye size={11} /> {article.compteurVues} vues</span>}
             </p>
             {article.chapo && <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>{article.chapo}</p>}

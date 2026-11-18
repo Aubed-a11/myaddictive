@@ -18,6 +18,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
                              @org.springframework.data.repository.query.Param("aLaUne") boolean aLaUne,
                              @org.springframework.data.repository.query.Param("q") String q,
                              Pageable pageable);
+    long countByAuteurIsNullAndSourceLegacyIdStartingWith(String prefixe);
     long countBySourceLegacyIdStartingWith(String prefixe);
     java.util.List<Article> findByTitreStartingWith(String prefixe);
     long countByCategorie(String categorie);
