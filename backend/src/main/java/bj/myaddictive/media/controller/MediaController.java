@@ -39,9 +39,20 @@ public class MediaController {
             @RequestParam(required = false) String categorie,
             @RequestParam(defaultValue = "false") boolean aLaUne,
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) String artiste,
             @org.springframework.data.web.PageableDefault(size = 40, sort = "datePublication",
                     direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(mediaService.listerArticles(categorie, aLaUne, q, pageable));
+        return ResponseEntity.ok(mediaService.listerArticles(categorie, aLaUne, q, artiste, pageable));
+    }
+
+    @GetMapping("/albums")
+    public ResponseEntity<java.util.List<bj.myaddictive.media.domain.Album>> listerAlbums() {
+        return ResponseEntity.ok(mediaService.listerAlbums());
+    }
+
+    @GetMapping("/albums/{id}")
+    public ResponseEntity<bj.myaddictive.media.domain.Album> obtenirAlbum(@PathVariable Long id) {
+        return ResponseEntity.ok(mediaService.obtenirAlbum(id));
     }
 
     @GetMapping("/articles/{id}")

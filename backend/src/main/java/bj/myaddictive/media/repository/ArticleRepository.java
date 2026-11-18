@@ -13,10 +13,12 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             select a from Article a where a.statut = 'PUBLIE'
               and (:categorie = '' or a.categorie = :categorie)
               and (:aLaUne = false or a.aLaUne = true)
+              and (:artiste = '' or lower(a.artisteLie) = lower(:artiste))
               and (:q = '' or lower(a.titre) like lower(concat('%', :q, '%')))""")
     Page<Article> rechercher(@org.springframework.data.repository.query.Param("categorie") String categorie,
                              @org.springframework.data.repository.query.Param("aLaUne") boolean aLaUne,
                              @org.springframework.data.repository.query.Param("q") String q,
+                             @org.springframework.data.repository.query.Param("artiste") String artiste,
                              Pageable pageable);
     long countByAuteurIsNullAndSourceLegacyIdStartingWith(String prefixe);
     long countBySourceLegacyIdStartingWith(String prefixe);

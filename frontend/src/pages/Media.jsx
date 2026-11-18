@@ -83,6 +83,7 @@ export default function Media() {
   return (
     <>
       <EntetePage titre="Média & actualités" sousTitre="À la une, actualités, showbiz et vidéos">
+        <Link className="bouton petit" to="/media/albums">Albums</Link>
         <Link className="bouton secondaire petit" to="/offres-promotion">Offres de promotion</Link>
       </EntetePage>
 

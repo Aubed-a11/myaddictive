@@ -1,11 +1,11 @@
 /* ============ Design My Addictive : theme sombre, accent or ============ */
 :root {
-  --fond: #0a0a0f;
-  --carte: #16151f;
-  --carte-2: #1e1d2a;
-  --bordure: #2a2836;
+  --fond: #2b2d33;
+  --carte: #353841;
+  --carte-2: #3f424c;
+  --bordure: #4d515c;
   --texte: #ffffff;
-  --attenue: #9a97ae;
+  --attenue: #b8bbc6;
   --or: #ffcc21;
   --or-fonce: #e0ac00;
   --bleu: #05638e;
@@ -46,7 +46,7 @@ h1, h2, h3, p { margin: 0; }
 .application { min-height: 100dvh; display: flex; flex-direction: column; }
 .entete {
   position: sticky; top: 0; z-index: 30; height: var(--haut-entete);
-  background: rgba(10, 10, 15, .86); backdrop-filter: blur(12px);
+  background: rgba(43, 45, 51, .88); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--bordure);
 }
 .entete-contenu { max-width: var(--largeur); height: 100%; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 24px; }
@@ -65,7 +65,7 @@ h1, h2, h3, p { margin: 0; }
 
 .onglets {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: var(--haut-onglets);
-  display: flex; background: rgba(22, 21, 31, .95); backdrop-filter: blur(12px);
+  display: flex; background: rgba(43, 45, 51, .96); backdrop-filter: blur(12px);
   border-top: 1px solid var(--bordure); padding-bottom: env(safe-area-inset-bottom);
 }
 .onglets a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10.5px; font-weight: 600; color: var(--attenue); }
@@ -170,7 +170,7 @@ a.ligne:hover, button.ligne:hover { background: rgba(255, 255, 255, .03); }
 
 /* ---------- Hero / carrousel ---------- */
 .hero { position: relative; border-radius: 22px; overflow: hidden; min-height: 190px; background: var(--carte) center/cover; display: flex; align-items: flex-end; border: 1px solid var(--bordure); }
-.hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,15,.1), rgba(10,10,15,.85)); }
+.hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(43,45,51,.1), rgba(43,45,51,.85)); }
 .hero > * { position: relative; z-index: 1; }
 .hero-contenu { padding: 22px; max-width: 640px; }
 .hero h2 { font-size: clamp(20px, 3vw, 28px); font-weight: 800; }
@@ -205,7 +205,7 @@ a.ligne:hover, button.ligne:hover { background: rgba(255, 255, 255, .03); }
 .tuile p { font-size: 12px; opacity: .85; }
 
 /* ---------- Auth ---------- */
-.fond-auth { min-height: 100dvh; display: grid; place-items: center; padding: 20px; background: linear-gradient(rgba(10,10,15,.78), rgba(10,10,15,.92)), var(--fond-image) center/cover; }
+.fond-auth { min-height: 100dvh; display: grid; place-items: center; padding: 20px; background: linear-gradient(rgba(43,45,51,.78), rgba(43,45,51,.92)), var(--fond-image) center/cover; }
 .boite-auth { width: 100%; max-width: 420px; background: rgba(22, 21, 31, .92); border: 1px solid var(--bordure); border-radius: 24px; padding: 28px; backdrop-filter: blur(10px); }
 .boite-auth .logo { margin: 0 auto 16px; height: 44px; }
 .boite-auth h1 { font-size: 24px; font-weight: 800; text-align: center; }
@@ -255,3 +255,11 @@ a.ligne:hover, button.ligne:hover { background: rgba(255, 255, 255, .03); }
 
 .sans-defilement-x { overflow-x: hidden; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+
+/* Profil artiste / album : photo + titre */
+.profil-entete { display: flex; gap: 20px; align-items: center; margin: 8px 0 20px; flex-wrap: wrap; }
+.profil-photo { width: 150px; height: 150px; border-radius: 20px; object-fit: cover; background: var(--carte-2); border: 2px solid var(--or); flex-shrink: 0; }
+.profil-photo.image-vide { display: grid; place-items: center; }
+.profil-entete .grow { min-width: 0; }
+@media (max-width: 520px) { .profil-photo { width: 110px; height: 110px; } }

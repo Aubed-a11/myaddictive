@@ -18,15 +18,33 @@ public class MediaService {
 
     private final ArticleRepository articleRepository;
     private final OffrePromotionRepository offrePromotionRepository;
+    private final bj.myaddictive.media.repository.AlbumRepository albumRepository;
+    private final bj.myaddictive.media.repository.PisteAlbumRepository pisteAlbumRepository;
 
-    public MediaService(ArticleRepository articleRepository, OffrePromotionRepository offrePromotionRepository) {
+    public MediaService(ArticleRepository articleRepository, OffrePromotionRepository offrePromotionRepository,
+                        bj.myaddictive.media.repository.AlbumRepository albumRepository,
+                        bj.myaddictive.media.repository.PisteAlbumRepository pisteAlbumRepository) {
+        this.albumRepository = albumRepository;
+        this.pisteAlbumRepository = pisteAlbumRepository;
         this.articleRepository = articleRepository;
         this.offrePromotionRepository = offrePromotionRepository;
     }
 
-    public Page<Article> listerArticles(String categorie, boolean aLaUne, String q, Pageable pageable) {
+    public Page<Article> listerArticles(String categorie, boolean aLaUne, String q, String artiste, Pageable pageable) {
         return articleRepository.rechercher(
-                categorie == null ? "" : categorie.trim(), aLaUne, q == null ? "" : q.trim(), pageable);
+                categorie == null ? "" : categorie.trim(), aLaUne, q == null ? "" : q.trim(),
+                artiste == null ? "" : artiste.trim(), pageable);
+    }
+
+    public java.util.List<bj.myaddictive.media.domain.Album> listerAlbums() {
+        return albumRepository.findAllByOrderByAnneeDescIdDesc();
+    }
+
+    public bj.myaddictive.media.domain.Album obtenirAlbum(Long id) {
+        bj.myaddictive.media.domain.Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Album introuvable."));
+        album.setPistes(pisteAlbumRepository.findByAlbumIdOrderByOrdreAsc(id));
+        return album;
     }
 
     @Transactional

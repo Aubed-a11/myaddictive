@@ -12,6 +12,8 @@ import MotDePasseOublie from './pages/MotDePasseOublie';
 import ReinitialiserMotDePasse from './pages/ReinitialiserMotDePasse';
 import Media from './pages/Media';
 import Article from './pages/Article';
+import Albums from './pages/Albums';
+import AlbumDetail from './pages/AlbumDetail';
 import OffresPromotion from './pages/OffresPromotion';
 import Billetterie from './pages/Billetterie';
 import EvenementDetail from './pages/EvenementDetail';
@@ -66,6 +68,8 @@ export default function App() {
 
                 <Route path="/media" element={<Media />} />
                 <Route path="/media/articles/:id" element={<Article />} />
+                <Route path="/media/albums" element={<Albums />} />
+                <Route path="/media/albums/:id" element={<AlbumDetail />} />
                 <Route path="/offres-promotion" element={<OffresPromotion />} />
 
                 <Route path="/billetterie" element={<Billetterie />} />

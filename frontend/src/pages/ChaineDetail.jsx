@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Check, Star } from 'lucide-react';
+import { Check, Play, Star } from 'lucide-react';
 import client from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import useCharger, { contenu } from '../utils/useCharger';
 import { formaterLibelle, dateCourte } from '../utils/libelles';
 import { payerAvecFedapay } from '../utils/paiementFedapay';
-import { Champ, Etat, MessageErreur, Retour } from '../components/ui';
+import { Etat, Image, MessageErreur, Retour } from '../components/ui';
 
 
 export default function ChaineDetail() {
@@ -81,6 +81,12 @@ export default function ChaineDetail() {
   };
 
   const estFan = fanClub?.actif;
+  const { data: publications } = useCharger(
+    () => (chaine?.nom
+      ? client.get('/api/media/articles', { params: { artiste: chaine.nom, page: 0, size: 12 } }).then((r) => contenu(r.data)).catch(() => [])
+      : Promise.resolve([])),
+    [chaine?.nom], [],
+  );
 
   return (
     <>
@@ -88,16 +94,40 @@ export default function ChaineDetail() {
       <Etat chargement={chargement} erreur={erreur}>
         {chaine && (
           <>
-            <div className="entete-page">
-              <div>
+            <div className="profil-entete">
+              <Image className="profil-photo carre" src={chaine.imageUrl} alt={chaine.nom} />
+              <div className="grow">
                 <h1 className="titre-page">{chaine.nom} {estFan && <span className="badge"><Star size={11} /> Fan club</span>}</h1>
                 <p className="attenue">{chaine.nombreAbonnes} abonné{chaine.nombreAbonnes > 1 ? 's' : ''}</p>
+                <p style={{ marginTop: 12 }}>
+                  <button className={`bouton ${abonne ? 'secondaire' : ''}`} onClick={basculerAbonnement} disabled={enAbonnement}>
+                    {abonne && <Check size={16} />} {abonne ? 'Abonné' : "S'abonner"}
+                  </button>
+                </p>
               </div>
-              <button className={`bouton ${abonne ? 'secondaire' : ''}`} onClick={basculerAbonnement} disabled={enAbonnement}>
-                {abonne && <Check size={16} />} {abonne ? 'Abonné' : "S'abonner"}
-              </button>
             </div>
-            {chaine.description && <p style={{ lineHeight: 1.6, maxWidth: 760 }}>{chaine.description}</p>}
+            {chaine.description && (
+              <div className="carte" style={{ margin: '4px 0 18px' }}>
+                <h2 className="titre-section" style={{ marginTop: 0 }}>Biographie</h2>
+                <p style={{ lineHeight: 1.7, maxWidth: 760 }}>{chaine.description}</p>
+              </div>
+            )}
+            {publications.length > 0 && (
+              <>
+                <h2 className="titre-section">Vidéos & articles</h2>
+                <div className="grille" style={{ marginBottom: 20 }}>
+                  {publications.map((a) => (
+                    <Link key={a.id} to={`/media/articles/${a.id}`} className="carte-media">
+                      <div style={{ position: 'relative' }}>
+                        <Image className="image" src={a.imageUrl} alt="" />
+                        {(a.categorie === 'VIDEO' || a.videoUrl) && <Play size={34} color="#fff" style={{ position: 'absolute', right: 10, bottom: 10 }} />}
+                      </div>
+                      <div className="corps"><h3>{a.titre}</h3></div>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
 
             <MessageErreur message={erreurAchat} />
             {message && <p className="message-ok">{message}</p>}
