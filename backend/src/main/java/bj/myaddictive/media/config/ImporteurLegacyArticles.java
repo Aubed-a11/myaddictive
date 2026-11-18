@@ -52,8 +52,9 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         supprimerArticlesDemo();
-        importerArticles();
-        importerVideos();
+        importer("legacy/articles_legacy.json", "articles", PREFIXE_ACTU, false);
+        importer("legacy/videos_legacy.json", "videos", "video-", true);
+        importer("legacy/videos_legacy.json", "clips", "clip-", true);
     }
 
     private void supprimerArticlesDemo() {
@@ -75,11 +76,12 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
         }
     }
 
-    private void importerArticles() throws Exception {
-        List<LigneImport> lignes = lire("legacy/articles_legacy.json");
+    private void importer(String fichier, String libelle, String prefixe, boolean video) throws Exception {
+        List<LigneImport> lignes = new java.util.ArrayList<>(lire(fichier));
+        lignes.removeIf(l -> l.sourceLegacyId() == null || !l.sourceLegacyId().startsWith(prefixe));
         if (lignes.isEmpty()) return;
-        if (articleRepository.countBySourceLegacyIdStartingWith(PREFIXE_ACTU) >= lignes.size()) {
-            log.info("Import legacy des articles deja effectue, etape ignoree.");
+        if (articleRepository.countBySourceLegacyIdStartingWith(prefixe) >= lignes.size()) {
+            log.info("Import legacy des {} deja effectue, etape ignoree.", libelle);
             return;
         }
 
@@ -87,7 +89,10 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
         Map<String, Article> parTitre = new HashMap<>();
         for (Article a : articleRepository.findAll()) {
             if (a.getSourceLegacyId() != null) parSource.put(a.getSourceLegacyId(), a);
-            else if (a.getTitre() != null && !"VIDEO".equals(a.getCategorie())) parTitre.putIfAbsent(a.getTitre().trim(), a);
+            else if ("VIDEO".equals(a.getCategorie()) == video) {
+                String cle = video ? a.getVideoUrl() : a.getTitre();
+                if (cle != null) parTitre.putIfAbsent(cle.trim(), a);
+            }
         }
 
         int crees = 0, misAJour = 0, erreurs = 0;
@@ -95,7 +100,7 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
             try {
                 if (l.titre() == null || l.titre().isBlank()) continue;
                 Article a = parSource.get(l.sourceLegacyId());
-                if (a == null) a = parTitre.remove(l.titre().trim());
+                if (a == null) a = parTitre.remove((video ? String.valueOf(l.videoUrl()) : l.titre()).trim());
                 boolean nouveau = (a == null);
                 if (nouveau) a = new Article();
                 a.setSourceLegacyId(l.sourceLegacyId());
@@ -103,6 +108,7 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
                 a.setChapo(l.chapo());
                 a.setContenu(l.contenu() != null ? l.contenu() : "");
                 a.setImageUrl(l.imageUrl());
+                a.setVideoUrl(l.videoUrl());
                 a.setCategorie(l.categorie() != null ? l.categorie() : "ACTUALITE");
                 a.setArtisteLie(l.artisteLie());
                 a.setALaUne(l.aLaUne());
@@ -116,36 +122,7 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
                 log.warn("Article ignore (source id={}) : {}", l.sourceLegacyId(), e.getMessage());
             }
         }
-        log.info("Import legacy des articles termine : {} crees, {} mis a jour, {} en erreur (sur {} lignes).",
-                crees, misAJour, erreurs, lignes.size());
-    }
-
-    private void importerVideos() throws Exception {
-        if (articleRepository.countByCategorie("VIDEO") > 3) {
-            log.info("Import legacy des videos deja effectue, etape ignoree.");
-            return;
-        }
-        int importes = 0;
-        for (LigneImport l : lire("legacy/videos_legacy.json")) {
-            try {
-                if (l.titre() == null || l.titre().isBlank()) continue;
-                Article a = new Article();
-                a.setTitre(l.titre());
-                a.setChapo(l.chapo());
-                a.setContenu(l.contenu() != null ? l.contenu() : "");
-                a.setImageUrl(l.imageUrl());
-                a.setVideoUrl(l.videoUrl());
-                a.setCategorie("VIDEO");
-                a.setALaUne(l.aLaUne());
-                a.setStatut(l.statut() != null ? l.statut() : "PUBLIE");
-                a.setCompteurVues(l.compteurVues() != null ? l.compteurVues() : 0L);
-                a.setSourceLegacyId(l.sourceLegacyId());
-                articleRepository.save(a);
-                importes++;
-            } catch (Exception e) {
-                log.warn("Video ignoree (source id={}) : {}", l.sourceLegacyId(), e.getMessage());
-            }
-        }
-        log.info("Import legacy des videos termine : {} crees.", importes);
+        log.info("Import legacy des {} termine : {} crees, {} mis a jour, {} en erreur (sur {} lignes).",
+                libelle, crees, misAJour, erreurs, lignes.size());
     }
 }

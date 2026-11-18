@@ -17,7 +17,7 @@ export default function Article() {
   const notifier = useNotifier();
   const { data: article, chargement, erreur } = useCharger(() => client.get(`/api/media/articles/${id}`).then((r) => r.data), [id]);
   const { favori, basculer } = useFavori('ARTICLE', id);
-  const integrable = article?.videoUrl ? urlIntegrable(article.videoUrl) : null;
+  const integrable = article?.videoUrl ? urlIntegrable(article.videoUrl, article.categorie === 'VIDEO') : null;
 
   const surFavori = async () => {
     if (!(await basculer())) navigate(`/connexion?retour=${encodeURIComponent(pathname)}`);

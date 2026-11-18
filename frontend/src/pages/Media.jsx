@@ -108,7 +108,7 @@ export default function Media() {
             <Link key={a.id} to={`/media/articles/${a.id}`} className="carte-media">
               <div style={{ position: 'relative' }}>
                 <Image className="image" src={a.imageUrl} alt="" />
-                {a.categorie === 'VIDEO' && <PlayCircle size={34} color="#fff" style={{ position: 'absolute', right: 10, bottom: 10 }} />}
+                {(a.categorie === 'VIDEO' || a.videoUrl) && <PlayCircle size={34} color="#fff" style={{ position: 'absolute', right: 10, bottom: 10 }} />}
               </div>
               <div className="corps">
                 {a.aLaUne && <span className="badge"><Star size={10} /> À la une</span>}
