@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { urlImage } from '../api/client';
@@ -55,13 +55,14 @@ export function EntetePage({ titre, sousTitre, children }) {
 /** Image du backend, ou logo My Addictive quand il n'y en a pas (logo complet, ou icône seule en petit format). */
 export function Image({ src, alt = '', className = '' }) {
   const url = urlImage(src);
-  if (!url) {
+  const [cassee, setCassee] = useState(false);
+  if (!url || cassee) {
     return <div className={`${className} image-vide`} role="img" aria-label={alt}>
         <img className="logo-plein" src={logoMarque} alt="" />
         <img className="logo-icone" src={iconeMarque} alt="" />
       </div>;
   }
-  return <img className={className} src={url} alt={alt} loading="lazy" />;
+  return <img className={className} src={url} alt={alt} loading="lazy" referrerPolicy="no-referrer" onError={() => setCassee(true)} />;
 }
 
 export function Champ({ label, id, children, ...props }) {

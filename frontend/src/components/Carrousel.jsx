@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { urlImage } from '../api/client';
 import logoMarque from '../assets/logo_myaddictive.png';
@@ -11,10 +11,12 @@ export default function Carrousel({ children }) {
 /** Diapo plein cadre : image de fond, etiquette, titre, sous-titre. */
 export function Diapo({ vers, image, etiquette, titre, sousTitre }) {
   const url = urlImage(image);
+  const [cassee, setCassee] = useState(false);
+  const affichee = url && !cassee;
   return (
-    <Link to={vers} className="diapo" style={url
-      ? { backgroundImage: `url("${url}")` }
+    <Link to={vers} className="diapo" style={affichee ? undefined
       : { backgroundImage: `url("${logoMarque}")`, backgroundSize: '46%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center 38%' }}>
+      {affichee && <img className="diapo-image" src={url} alt="" referrerPolicy="no-referrer" onError={() => setCassee(true)} />}
       {etiquette && <span className="badge">{etiquette}</span>}
       <div>
         <h3>{titre}</h3>
