@@ -38,8 +38,10 @@ public class MediaController {
     public ResponseEntity<Page<Article>> listerArticles(
             @RequestParam(required = false) String categorie,
             @RequestParam(defaultValue = "false") boolean aLaUne,
-            Pageable pageable) {
-        return ResponseEntity.ok(mediaService.listerArticles(categorie, aLaUne, pageable));
+            @RequestParam(required = false) String q,
+            @org.springframework.data.web.PageableDefault(size = 40, sort = "datePublication",
+                    direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(mediaService.listerArticles(categorie, aLaUne, q, pageable));
     }
 
     @GetMapping("/articles/{id}")

@@ -86,6 +86,10 @@ export default function Articles() {
                   <option value="ACTUALITE">ACTUALITE</option>
                   <option value="SHOWBIZ">SHOWBIZ</option>
                   <option value="VIDEO">VIDEO</option>
+                  <option value="INTERVIEW">INTERVIEW</option>
+                  <option value="ZOOM">ZOOM</option>
+                  <option value="CHRONIQUE">CHRONIQUE</option>
+                  <option value="EVENEMENT">EVENEMENT</option>
                 </select>
               </div>
               <div className="champ">

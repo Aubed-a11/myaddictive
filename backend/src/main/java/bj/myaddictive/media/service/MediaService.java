@@ -24,10 +24,9 @@ public class MediaService {
         this.offrePromotionRepository = offrePromotionRepository;
     }
 
-    public Page<Article> listerArticles(String categorie, boolean aLaUne, Pageable pageable) {
-        if (aLaUne) return articleRepository.findByStatutAndALaUneTrue("PUBLIE", pageable);
-        if (categorie != null && !categorie.isBlank()) return articleRepository.findByStatutAndCategorie("PUBLIE", categorie, pageable);
-        return articleRepository.findByStatut("PUBLIE", pageable);
+    public Page<Article> listerArticles(String categorie, boolean aLaUne, String q, Pageable pageable) {
+        return articleRepository.rechercher(
+                categorie == null ? "" : categorie.trim(), aLaUne, q == null ? "" : q.trim(), pageable);
     }
 
     @Transactional

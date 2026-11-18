@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PlayCircle, Search, Star } from 'lucide-react';
 import client from '../api/client';
@@ -14,12 +14,18 @@ const ONGLETS = [
   { valeur: 'VIDEO', libelle: 'Vidéo / Clip' },
 ];
 
-/** Articles, les liés à une chaîne suivie remontent en tête (recommandation, section 4.2). */
-async function chargerArticles(estConnecte) {
-  const { data } = await client.get('/api/media/articles', { params: { page: 0, size: 40 } });
+const TAILLE_PAGE = 24;
+
+/** Une page d'articles depuis la base ; les liés à une chaîne suivie remontent en tête (recommandation, section 4.2). */
+async function chargerPage({ page, onglet, recherche, estConnecte }) {
+  const params = { page, size: TAILLE_PAGE };
+  if (onglet === 'A_LA_UNE') params.aLaUne = true;
+  else if (onglet !== 'TOUT') params.categorie = onglet;
+  if (recherche) params.q = recherche;
+  const { data } = await client.get('/api/media/articles', { params });
   let articles = contenu(data);
   let recommande = false;
-  if (estConnecte) {
+  if (estConnecte && page === 0 && onglet === 'TOUT' && !recherche) {
     try {
       const { data: chaines } = await client.get('/api/live/mes-chaines-suivies');
       const suivis = new Set((chaines || []).map((c) => c.nom.toLowerCase()));
@@ -30,26 +36,49 @@ async function chargerArticles(estConnecte) {
       }
     } catch { /* recommandation facultative */ }
   }
-  return { articles, recommande };
+  return { articles, recommande, derniere: data?.last !== false };
 }
 
 export default function Media() {
   const { estConnecte } = useAuth();
-  const { data, chargement, erreur } = useCharger(() => chargerArticles(estConnecte), [estConnecte], { articles: [], recommande: false });
   const [onglet, setOnglet] = useState('TOUT');
+  const [saisie, setSaisie] = useState('');
   const [recherche, setRecherche] = useState('');
+  const [articles, setArticles] = useState([]);
+  const [page, setPage] = useState(0);
+  const [derniere, setDerniere] = useState(true);
+  const [recommande, setRecommande] = useState(false);
+  const [chargement, setChargement] = useState(true);
+  const [erreur, setErreur] = useState(null);
 
-  const affiches = useMemo(() => {
-    const q = recherche.trim().toLowerCase();
-    return data.articles
-      .filter((a) => onglet === 'TOUT' || (onglet === 'A_LA_UNE' ? a.aLaUne : a.categorie === onglet))
-      .filter((a) => !q || a.titre?.toLowerCase().includes(q));
-  }, [data.articles, onglet, recherche]);
+  useEffect(() => {
+    const t = setTimeout(() => setRecherche(saisie.trim()), 350);
+    return () => clearTimeout(t);
+  }, [saisie]);
 
-  const unes = useMemo(() => {
-    const aLaUne = data.articles.filter((a) => a.aLaUne);
-    return (aLaUne.length ? aLaUne : data.articles).slice(0, 6);
-  }, [data.articles]);
+  useEffect(() => {
+    let actif = true;
+    setChargement(true); setErreur(null);
+    chargerPage({ page: 0, onglet, recherche, estConnecte })
+      .then((r) => { if (!actif) return; setArticles(r.articles); setPage(0); setDerniere(r.derniere); setRecommande(r.recommande); })
+      .catch((e) => { if (actif) setErreur(e.message || 'Erreur de chargement.'); })
+      .finally(() => { if (actif) setChargement(false); });
+    return () => { actif = false; };
+  }, [onglet, recherche, estConnecte]);
+
+  const voirPlus = async () => {
+    setChargement(true);
+    try {
+      const r = await chargerPage({ page: page + 1, onglet, recherche, estConnecte });
+      setArticles((anciens) => [...anciens, ...r.articles]);
+      setPage(page + 1); setDerniere(r.derniere);
+    } catch (e) { setErreur(e.message || 'Erreur de chargement.'); } finally { setChargement(false); }
+  };
+
+  const { data: unes } = useCharger(
+    () => client.get('/api/media/articles', { params: { aLaUne: true, page: 0, size: 6 } }).then((r) => contenu(r.data)), [], []);
+  const affiches = articles;
+  const data = { recommande };
 
   return (
     <>
@@ -66,13 +95,13 @@ export default function Media() {
       )}
 
       <div className="champ" style={{ position: 'relative', maxWidth: 420 }}>
-        <input type="search" aria-label="Rechercher un article" placeholder="Rechercher un article…" value={recherche} onChange={(e) => setRecherche(e.target.value)} style={{ paddingLeft: 38 }} />
+        <input type="search" aria-label="Rechercher un article" placeholder="Rechercher un article…" value={saisie} onChange={(e) => setSaisie(e.target.value)} style={{ paddingLeft: 38 }} />
         <Search size={16} style={{ position: 'absolute', left: 12, top: 14, color: 'var(--attenue)' }} />
       </div>
       <Filtres options={ONGLETS} valeur={onglet} onChoisir={setOnglet} />
       {data.recommande && onglet === 'TOUT' && <p className="petit or" style={{ marginBottom: 12 }}>Recommandé selon les artistes que vous suivez</p>}
 
-      <Etat chargement={chargement} erreur={erreur} vide={affiches.length === 0}
+      <Etat chargement={chargement && articles.length === 0} erreur={erreur} vide={!chargement && affiches.length === 0}
         titreVide="Aucun article" texteVide={recherche ? 'Aucun résultat pour cette recherche.' : 'Rien dans cette catégorie pour le moment.'}>
         <div className="grille">
           {affiches.map((a) => (
@@ -89,6 +118,11 @@ export default function Media() {
             </Link>
           ))}
         </div>
+        {!derniere && (
+          <div style={{ textAlign: 'center', marginTop: 20 }}>
+            <button type="button" className="bouton secondaire" onClick={voirPlus} disabled={chargement}>Voir plus d’articles</button>
+          </div>
+        )}
       </Etat>
     </>
   );

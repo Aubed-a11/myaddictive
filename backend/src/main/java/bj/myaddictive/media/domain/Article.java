@@ -42,6 +42,11 @@ public class Article {
     @Column(nullable = false, length = 15)
     private String statut = "PUBLIE"; // BROUILLON, PUBLIE
 
+    /** Identifiant dans l'ancienne base (ex. "actu-1001"), pour l'import legacy idempotent. */
+    @Column(name = "source_legacy_id", length = 40)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String sourceLegacyId;
+
     @Column(name = "date_publication", nullable = false)
     private Instant datePublication = Instant.now();
 
@@ -67,6 +72,8 @@ public class Article {
     public void setALaUne(boolean aLaUne) { this.aLaUne = aLaUne; }
     public String getStatut() { return statut; }
     public void setStatut(String statut) { this.statut = statut; }
+    public String getSourceLegacyId() { return sourceLegacyId; }
+    public void setSourceLegacyId(String sourceLegacyId) { this.sourceLegacyId = sourceLegacyId; }
     public Instant getDatePublication() { return datePublication; }
     public void setDatePublication(Instant datePublication) { this.datePublication = datePublication; }
 }
