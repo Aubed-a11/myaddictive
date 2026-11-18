@@ -90,7 +90,7 @@ export default function Media() {
       {unes.length > 0 && (
         <div style={{ marginBottom: 24 }}>
           <Carrousel>
-            {unes.map((a) => <Diapo key={a.id} vers={`/media/articles/${a.id}`} image={a.imageUrl} etiquette={formaterLibelle(a.categorie)} titre={a.titre} />)}
+            {unes.map((a) => <Diapo key={a.id} vers={`/media/articles/${a.id}`} image={a.imageUrl} secours={a.imageSecours} etiquette={formaterLibelle(a.categorie)} titre={a.titre} />)}
           </Carrousel>
         </div>
       )}
@@ -108,7 +108,7 @@ export default function Media() {
           {affiches.map((a) => (
             <Link key={a.id} to={`/media/articles/${a.id}`} className="carte-media">
               <div style={{ position: 'relative' }}>
-                <Image className="image" src={a.imageUrl} alt="" />
+                <Image className="image" src={a.imageUrl} secours={a.imageSecours} alt="" />
                 {(a.categorie === 'VIDEO' || a.videoUrl) && <PlayCircle size={34} color="#fff" style={{ position: 'absolute', right: 10, bottom: 10 }} />}
               </div>
               <div className="corps">

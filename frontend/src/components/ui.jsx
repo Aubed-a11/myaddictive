@@ -53,16 +53,17 @@ export function EntetePage({ titre, sousTitre, children }) {
 }
 
 /** Image du backend, ou logo My Addictive quand il n'y en a pas (logo complet, ou icône seule en petit format). */
-export function Image({ src, alt = '', className = '' }) {
-  const url = urlImage(src);
-  const [cassee, setCassee] = useState(false);
-  if (!url || cassee) {
+export function Image({ src, secours, alt = '', className = '' }) {
+  const [etape, setEtape] = useState(0); // 0 = principale, 1 = image de secours, 2 = logo
+  const url = urlImage(etape === 0 ? src : secours);
+  if (!url || etape >= 2) {
     return <div className={`${className} image-vide`} role="img" aria-label={alt}>
         <img className="logo-plein" src={logoMarque} alt="" />
         <img className="logo-icone" src={iconeMarque} alt="" />
       </div>;
   }
-  return <img className={className} src={url} alt={alt} loading="lazy" referrerPolicy="no-referrer" onError={() => setCassee(true)} />;
+  const suivant = () => setEtape(etape === 0 && secours ? 1 : 2);
+  return <img key={url} className={className} src={url} alt={alt} loading="lazy" referrerPolicy="no-referrer" onError={suivant} />;
 }
 
 export function Champ({ label, id, children, ...props }) {

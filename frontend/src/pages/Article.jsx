@@ -38,11 +38,11 @@ export default function Article() {
               : article.videoUrl
                 ? (
                   <a href={article.videoUrl} target="_blank" rel="noreferrer" style={{ position: 'relative', display: 'block' }} aria-label="Lire la vidéo">
-                    <Image className="visuel paysage" src={article.imageUrl} alt="" />
+                    <Image className="visuel paysage" src={article.imageUrl} secours={article.imageSecours} alt="" />
                     <PlayCircle size={64} color="#fff" style={{ position: 'absolute', inset: 0, margin: 'auto' }} />
                   </a>
                 )
-                : article.imageUrl && <Image className="visuel paysage" src={article.imageUrl} alt="" />}
+                : article.imageUrl && <Image className="visuel paysage" src={article.imageUrl} secours={article.imageSecours} alt="" />}
 
             <div className="entete-page" style={{ marginTop: 18 }}>
               <h1 className="titre-page">{article.titre}</h1>

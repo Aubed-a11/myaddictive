@@ -26,7 +26,7 @@ async function chargerALaUne() {
   ]);
   const a = contenu(articles.data).map((x) => ({
     cle: `a${x.id}`, vers: `/media/articles/${x.id}`, titre: x.titre, sousTitre: x.categorie,
-    image: x.imageUrl, date: x.datePublication, etiquette: 'Actualité',
+    image: x.imageUrl, secours: x.imageSecours, date: x.datePublication, etiquette: 'Actualité',
   }));
   const e = evenements.flatMap((r) => contenu(r.data)).map((x) => ({
     cle: `e${x.id}`, vers: `/evenements/${x.id}`, titre: x.titre, sousTitre: x.lieu, image: x.imageUrl, date: x.dateDebut,
@@ -59,7 +59,7 @@ export default function Hub() {
         <section style={{ marginTop: 28 }}>
           <h2 className="titre-section">À la une</h2>
           <Carrousel>
-            {unes.map((u) => <Diapo key={u.cle} vers={u.vers} image={u.image} etiquette={u.etiquette} titre={u.titre} sousTitre={u.sousTitre} />)}
+            {unes.map((u) => <Diapo key={u.cle} vers={u.vers} image={u.image} secours={u.secours} etiquette={u.etiquette} titre={u.titre} sousTitre={u.sousTitre} />)}
           </Carrousel>
         </section>
       )}

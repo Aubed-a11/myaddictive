@@ -119,7 +119,7 @@ export default function ChaineDetail() {
                   {publications.map((a) => (
                     <Link key={a.id} to={`/media/articles/${a.id}`} className="carte-media">
                       <div style={{ position: 'relative' }}>
-                        <Image className="image" src={a.imageUrl} alt="" />
+                        <Image className="image" src={a.imageUrl} secours={a.imageSecours} alt="" />
                         {(a.categorie === 'VIDEO' || a.videoUrl) && <Play size={34} color="#fff" style={{ position: 'absolute', right: 10, bottom: 10 }} />}
                       </div>
                       <div className="corps"><h3>{a.titre}</h3></div>

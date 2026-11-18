@@ -9,14 +9,14 @@ export default function Carrousel({ children }) {
 }
 
 /** Diapo plein cadre : image de fond, etiquette, titre, sous-titre. */
-export function Diapo({ vers, image, etiquette, titre, sousTitre }) {
-  const url = urlImage(image);
-  const [cassee, setCassee] = useState(false);
-  const affichee = url && !cassee;
+export function Diapo({ vers, image, secours, etiquette, titre, sousTitre }) {
+  const [etape, setEtape] = useState(0);
+  const url = urlImage(etape === 0 ? image : secours);
+  const affichee = url && etape < 2;
   return (
     <Link to={vers} className="diapo" style={affichee ? undefined
       : { backgroundImage: `url("${logoMarque}")`, backgroundSize: '46%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center 38%' }}>
-      {affichee && <img className="diapo-image" src={url} alt="" referrerPolicy="no-referrer" onError={() => setCassee(true)} />}
+      {affichee && <img key={url} className="diapo-image" src={url} alt="" referrerPolicy="no-referrer" onError={() => setEtape(etape === 0 && secours ? 1 : 2)} />}
       {etiquette && <span className="badge">{etiquette}</span>}
       <div>
         <h3>{titre}</h3>

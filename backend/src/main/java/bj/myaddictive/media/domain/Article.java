@@ -23,6 +23,10 @@ public class Article {
     @Column(name = "image_url")
     private String imageUrl;
 
+    /** Image de remplacement (2e visuel de l'ancien site) si la principale ne charge pas. */
+    @Column(name = "image_secours")
+    private String imageSecours;
+
     @Column(nullable = false, length = 30)
     private String categorie; // ACTUALITE, SHOWBIZ, VIDEO, A_LA_UNE
 
@@ -64,6 +68,8 @@ public class Article {
     public void setContenu(String contenu) { this.contenu = contenu; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getImageSecours() { return imageSecours; }
+    public void setImageSecours(String imageSecours) { this.imageSecours = imageSecours; }
     public String getCategorie() { return categorie; }
     public void setCategorie(String categorie) { this.categorie = categorie; }
     public String getArtisteLie() { return artisteLie; }

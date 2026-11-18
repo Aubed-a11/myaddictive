@@ -46,7 +46,7 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
     private record LigneImport(
             String titre, String chapo, String contenu, String imageUrl, String videoUrl, String categorie,
             boolean aLaUne, String statut, Long compteurVues, String sourceLegacyId, String datePublication,
-            String artisteLie, String auteur) {
+            String artisteLie, String auteur, String imageSecours) {
     }
 
     @Override
@@ -80,8 +80,8 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
         List<LigneImport> lignes = new java.util.ArrayList<>(lire(fichier));
         lignes.removeIf(l -> l.sourceLegacyId() == null || !l.sourceLegacyId().startsWith(prefixe));
         if (lignes.isEmpty()) return;
-        boolean auteurManquant = articleRepository.countByAuteurIsNullAndSourceLegacyIdStartingWith(prefixe) > 0
-                && lignes.stream().anyMatch(l -> l.auteur() != null);
+        boolean auteurManquant = articleRepository.countByImageSecoursIsNullAndSourceLegacyIdStartingWith(prefixe) > 0
+                && lignes.stream().anyMatch(l -> l.imageSecours() != null);
         if (!auteurManquant && articleRepository.countBySourceLegacyIdStartingWith(prefixe) >= lignes.size()) {
             log.info("Import legacy des {} deja effectue, etape ignoree.", libelle);
             return;
@@ -110,6 +110,7 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
                 a.setChapo(l.chapo());
                 a.setContenu(l.contenu() != null ? l.contenu() : "");
                 a.setImageUrl(l.imageUrl());
+                a.setImageSecours(l.imageSecours());
                 a.setVideoUrl(l.videoUrl());
                 a.setCategorie(l.categorie() != null ? l.categorie() : "ACTUALITE");
                 a.setArtisteLie(l.artisteLie());
