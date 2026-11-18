@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../assets/logo_myaddictive.png';
+import logo from '../assets/logo_myaddictive_clair.png';
 import scene from '../assets/scene_auth.jpg';
 
 /** Cadre commun des pages de connexion / inscription / mot de passe. */

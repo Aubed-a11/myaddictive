@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Home, Radio, ShoppingBag, TrendingUp, User, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { urlImage } from '../api/client';
-import logo from '../assets/logo_myaddictive.png';
+import logo from '../assets/logo_myaddictive_clair.png';
 
 const LIENS = [
   { vers: '/', libelle: 'Accueil', fin: true },

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { urlImage } from '../api/client';
-import logoMarque from '../assets/logo_myaddictive.png';
+import logoMarque from '../assets/logo_myaddictive_clair.png';
 
 /** Piste horizontale a defilement tactile (une diapo ou une carte par element). */
 export default function Carrousel({ children }) {

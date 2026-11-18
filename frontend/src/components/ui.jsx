@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { urlImage } from '../api/client';
 import iconeMarque from '../assets/icone_myaddictive.png';
-import logoMarque from '../assets/logo_myaddictive.png';
+import logoMarque from '../assets/logo_myaddictive_clair.png';
 
 export function Chargement() {
   return <div className="chargeur" role="progressbar" aria-label="Chargement" />;
