@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { urlImage } from '../api/client';
+import { chaineImages } from '../api/client';
 import iconeMarque from '../assets/icone_myaddictive.png';
 import logoMarque from '../assets/logo_myaddictive_clair.png';
 
@@ -54,16 +54,16 @@ export function EntetePage({ titre, sousTitre, children }) {
 
 /** Image du backend, ou logo My Addictive quand il n'y en a pas (logo complet, ou icône seule en petit format). */
 export function Image({ src, secours, alt = '', className = '' }) {
-  const [etape, setEtape] = useState(0); // 0 = principale, 1 = image de secours, 2 = logo
-  const url = urlImage(etape === 0 ? src : secours);
-  if (!url || etape >= 2) {
+  const [etape, setEtape] = useState(0); // index dans la chaîne : copie locale, ancien site, secours… puis logo
+  const chaine = chaineImages(src, secours);
+  const url = chaine[etape];
+  if (!url) {
     return <div className={`${className} image-vide`} role="img" aria-label={alt}>
         <img className="logo-plein" src={logoMarque} alt="" />
         <img className="logo-icone" src={iconeMarque} alt="" />
       </div>;
   }
-  const suivant = () => setEtape(etape === 0 && secours ? 1 : 2);
-  return <img key={url} className={className} src={url} alt={alt} loading="lazy" referrerPolicy="no-referrer" onError={suivant} />;
+  return <img key={url} className={className} src={url} alt={alt} loading="lazy" referrerPolicy="no-referrer" onError={() => setEtape(etape + 1)} />;
 }
 
 export function Champ({ label, id, children, ...props }) {

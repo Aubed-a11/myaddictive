@@ -266,3 +266,7 @@ a.ligne:hover, button.ligne:hover { background: rgba(255, 255, 255, .03); }
 
 /* Diapo : vraie image (avec repli sur le logo si elle ne charge pas) */
 .diapo-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* Galerie d'images d'un article */
+.galerie-article { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 24px; }
+.galerie-photo { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; background: var(--carte); }

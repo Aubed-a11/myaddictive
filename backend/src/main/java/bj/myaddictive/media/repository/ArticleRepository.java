@@ -20,6 +20,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
                              @org.springframework.data.repository.query.Param("q") String q,
                              @org.springframework.data.repository.query.Param("artiste") String artiste,
                              Pageable pageable);
+    long countByGalerieBruteIsNullAndSourceLegacyIdStartingWith(String prefixe);
     long countByImageSecoursIsNullAndSourceLegacyIdStartingWith(String prefixe);
     long countBySourceLegacyIdStartingWith(String prefixe);
     java.util.List<Article> findByTitreStartingWith(String prefixe);

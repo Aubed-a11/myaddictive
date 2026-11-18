@@ -19,6 +19,9 @@ export default function Article() {
   const { favori, basculer } = useFavori('ARTICLE', id);
   const integrable = article?.videoUrl ? urlIntegrable(article.videoUrl, article.categorie === 'VIDEO') : null;
 
+  // Toutes les images de l'article, sans répéter celles déjà affichées en tête de page.
+  const galerie = (article?.galerie || []).filter((u) => u !== article.imageUrl && u !== article.imageSecours);
+
   const surFavori = async () => {
     if (!(await basculer())) navigate(`/connexion?retour=${encodeURIComponent(pathname)}`);
   };
@@ -58,6 +61,11 @@ export default function Article() {
             </p>
             {article.chapo && <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>{article.chapo}</p>}
             <div style={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}>{article.contenu}</div>
+            {galerie.length > 0 && (
+              <section className="galerie-article" aria-label="Photos de l'article">
+                {galerie.map((u) => <Image key={u} className="galerie-photo" src={u} alt={article.titre} />)}
+              </section>
+            )}
           </>
         )}
       </Etat>

@@ -46,7 +46,7 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
     private record LigneImport(
             String titre, String chapo, String contenu, String imageUrl, String videoUrl, String categorie,
             boolean aLaUne, String statut, Long compteurVues, String sourceLegacyId, String datePublication,
-            String artisteLie, String auteur, String imageSecours) {
+            String artisteLie, String auteur, String imageSecours, List<String> galerie) {
     }
 
     @Override
@@ -80,8 +80,10 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
         List<LigneImport> lignes = new java.util.ArrayList<>(lire(fichier));
         lignes.removeIf(l -> l.sourceLegacyId() == null || !l.sourceLegacyId().startsWith(prefixe));
         if (lignes.isEmpty()) return;
-        boolean auteurManquant = articleRepository.countByImageSecoursIsNullAndSourceLegacyIdStartingWith(prefixe) > 0
-                && lignes.stream().anyMatch(l -> l.imageSecours() != null);
+        boolean auteurManquant = (articleRepository.countByImageSecoursIsNullAndSourceLegacyIdStartingWith(prefixe) > 0
+                && lignes.stream().anyMatch(l -> l.imageSecours() != null))
+                || (articleRepository.countByGalerieBruteIsNullAndSourceLegacyIdStartingWith(prefixe) > 0
+                && lignes.stream().anyMatch(l -> l.galerie() != null && !l.galerie().isEmpty()));
         if (!auteurManquant && articleRepository.countBySourceLegacyIdStartingWith(prefixe) >= lignes.size()) {
             log.info("Import legacy des {} deja effectue, etape ignoree.", libelle);
             return;
@@ -111,6 +113,7 @@ public class ImporteurLegacyArticles implements CommandLineRunner {
                 a.setContenu(l.contenu() != null ? l.contenu() : "");
                 a.setImageUrl(l.imageUrl());
                 a.setImageSecours(l.imageSecours());
+                a.setGalerie(l.galerie());
                 a.setVideoUrl(l.videoUrl());
                 a.setCategorie(l.categorie() != null ? l.categorie() : "ACTUALITE");
                 a.setArtisteLie(l.artisteLie());

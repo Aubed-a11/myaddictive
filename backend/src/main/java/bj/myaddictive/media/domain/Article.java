@@ -27,6 +27,11 @@ public class Article {
     @Column(name = "image_secours")
     private String imageSecours;
 
+    /** Toutes les images de l'article (une URL par ligne) : visuels de l'ancien site + images du corps du texte. */
+    @Column(name = "galerie", columnDefinition = "TEXT")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String galerieBrute;
+
     @Column(nullable = false, length = 30)
     private String categorie; // ACTUALITE, SHOWBIZ, VIDEO, A_LA_UNE
 
@@ -70,6 +75,15 @@ public class Article {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getImageSecours() { return imageSecours; }
     public void setImageSecours(String imageSecours) { this.imageSecours = imageSecours; }
+    @com.fasterxml.jackson.annotation.JsonProperty("galerie")
+    public java.util.List<String> getGalerie() {
+        if (galerieBrute == null || galerieBrute.isBlank()) return java.util.List.of();
+        return java.util.Arrays.stream(galerieBrute.split("\\n")).filter(x -> !x.isBlank()).toList();
+    }
+    public void setGalerie(java.util.List<String> urls) {
+        this.galerieBrute = (urls == null || urls.isEmpty()) ? null : String.join("\n", urls);
+    }
+    public String getGalerieBrute() { return galerieBrute; }
     public String getCategorie() { return categorie; }
     public void setCategorie(String categorie) { this.categorie = categorie; }
     public String getArtisteLie() { return artisteLie; }

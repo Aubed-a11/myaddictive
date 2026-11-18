@@ -55,4 +55,20 @@ export function urlImage(url) {
   return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
+/**
+ * Liste ordonnée des adresses à essayer pour une image d'article : d'abord la copie locale
+ * (dossier « actualites » copié sur le serveur), puis l'adresse d'origine, pour chaque image donnée.
+ */
+export function chaineImages(...urls) {
+  const liste = [];
+  urls.forEach((u) => {
+    if (!u) return;
+    const m = /\/actualites\/+([^/?#]+)$/i.exec(u);
+    if (m) liste.push(`${API_BASE_URL}/api/media/actualites/${m[1]}`);
+    const complete = urlImage(u);
+    if (complete) liste.push(complete);
+  });
+  return [...new Set(liste)];
+}
+
 export default client;
